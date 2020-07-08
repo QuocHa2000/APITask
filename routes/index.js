@@ -6,7 +6,7 @@ let User = require('../modal/user.modal');
 /* GET home page. */
 router.get('/', function(req, res, next) {
     User.find(function(err, user) {
-        if (err) console.log(err);
+        if (err) res.json(err);
         res.json(user);
     })
 })

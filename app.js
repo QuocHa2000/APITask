@@ -13,11 +13,11 @@ mongoose.connection
     .once("open", () => console.log("Connected"))
     .on("error", error => { console.log("Error" + error) })
 
-var indexRouter = require('./routes/index');
-var registerRoute = require('./routes/register');
-var loginRoute = require('./routes/login');
-
-var app = express();
+let indexRouter = require('./routes/index');
+let registerRoute = require('./routes/register');
+let loginRoute = require('./routes/login');
+let productRoute = require('./routes/product');
+let app = express();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -33,6 +33,7 @@ app.use('/', indexRouter);
 
 app.use('/register', registerRoute);
 app.use('/login', loginRoute);
+app.use('/product', productRoute);
 
 // catch 404 and forward to error handler
 

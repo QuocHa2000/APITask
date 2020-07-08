@@ -4,6 +4,7 @@ let router = express.Router();
 const user = require('../modal/user.modal');
 const { use } = require('./register');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 
 router.post('/', async function(req, res, next) {
@@ -16,8 +17,18 @@ router.post('/', async function(req, res, next) {
     if (!userPassword) {
         res.status(400).send("Username or password is incorrect");
         return;
+    } else {
+        let token = await jwt.sign({
+            email: userEmail.email,
+            userId: userEmail._id
+        }, process.env.secret_key);
+        await res.header('auth-token', token);
+        res.json({
+            message: "You are login",
+            token: token
+        })
     }
-    res.send("You are login");
+
 })
 
 module.exports = router;
