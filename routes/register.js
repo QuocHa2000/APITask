@@ -5,6 +5,7 @@ const { db } = require('../modal/user.modal');
 let bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 const nodemailerSendgrid = require('nodemailer-sendgrid');
+const jwt = require('jsonwebtoken');
 
 router.get('/', function(req, res) {
     res.send("Can connect");
@@ -23,6 +24,9 @@ router.post('/', async function(req, res, next) {
         return;
     }
 
+    let token = await jwt.sign({
+        userEmail: req.body.email
+    }, process.env.secret_key);
     let transporter = nodemailer.createTransport({
         host: "smtp.gmail.com",
         port: 587,
@@ -38,7 +42,7 @@ router.post('/', async function(req, res, next) {
         from: '18521308@gm.uit.edu.vn', // sender address
         to: req.body.email, // list of receivers
         subject: "Hello ✔", // Subject line
-        html: "<b>Hello world?</b>", // html body
+        html: `Please click this link to verify your email with token ${token} <a href='http://localhost:4000/verify'>http://localhost:4000/verify</a>`, // html body
     });
 
     let newuser = await user.insertMany([{
@@ -46,7 +50,8 @@ router.post('/', async function(req, res, next) {
         password: hashPassword,
         role: req.body.role,
         name: req.body.name,
-        phone: req.body.phone
+        phone: req.body.phone,
+        active: false
     }]);
     // let newuser = await user.create(req.body);
     // res.json(newuser);

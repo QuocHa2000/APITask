@@ -17,6 +17,7 @@ let indexRouter = require('./routes/index');
 let registerRoute = require('./routes/register');
 let loginRoute = require('./routes/login');
 let productRoute = require('./routes/product');
+let verifyRoute = require('./routes/verify');
 let app = express();
 
 // view engine setup
@@ -34,6 +35,7 @@ app.use('/', indexRouter);
 app.use('/register', registerRoute);
 app.use('/login', loginRoute);
 app.use('/product', productRoute);
+app.use('/verify', verifyRoute);
 
 // catch 404 and forward to error handler
 
