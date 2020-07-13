@@ -7,13 +7,12 @@ const logger = require('morgan');
 const mongoose = require('mongoose');
 const port = 4000;
 
-mongoose.connect(process.env.MONGO_URL, { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect(process.env.MONGO_URL, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true });
 
 mongoose.connection
     .once("open", () => console.log("Connected"))
     .on("error", error => { console.log("Error" + error) })
 
-let indexRouter = require('./routes/index');
 let registerRoute = require('./routes/register');
 let loginRoute = require('./routes/login');
 let productRoute = require('./routes/product');
@@ -30,7 +29,6 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
 
 app.use('/register', registerRoute);
 app.use('/login', loginRoute);

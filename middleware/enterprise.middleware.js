@@ -1,19 +1,27 @@
 const jwt = require('jsonwebtoken');
-const user = require('../modal/user.modal');
+const user = require('../model/user.model');
 
-module.exports = function(req, res, next) {
-    let token = req.header('auth-token');
+module.exports = async function(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader.split(' ')[1];
     if (!token) {
-        res.status(400).send('You haven\'t login yet');
-        return;
+        throw new Error("You haven't login yet");
     }
+    let role;
     try {
         // Kiểm tra có phải vai trò là enterprise hay không
-        let verify = jwt.verify(token, process.env.secret_key);
-        req.user = verify;
-        console.log(verify);
+        const verify = jwt.verify(token, process.env.secret_key);
+        const checkUser = await user.findOne({ email: verify.email }, function(err, result) {
+            if (result) role = result['role'];
+        });
+
+        if (role != 'enterprise') throw new Error('You are not allowed to access');
+        req.user = checkUser;
+        console.log(checkUser);
         next();
     } catch (error) {
-        res.status(400).send(error);
+        res.json({
+            message: error.message
+        })
     }
 }
