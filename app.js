@@ -7,21 +7,32 @@ const logger = require('morgan');
 const mongoose = require('mongoose');
 const port = 4000;
 
-mongoose.connect(process.env.MONGO_URL, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true });
+mongoose.connect(process.env.MONGO_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useCreateIndex: true,
+    useFindAndModify: false
+});
 
 mongoose.connection
     .once("open", () => console.log("Connected"))
     .on("error", error => { console.log("Error" + error) })
 
-let registerRoute = require('./routes/register');
-let loginRoute = require('./routes/login');
-let productRoute = require('./routes/product');
-let verifyRoute = require('./routes/verify');
-let app = express();
+const registerRoute = require('./routes/register');
+const loginRoute = require('./routes/login');
+const productRoute = require('./routes/product');
+const verifyRoute = require('./routes/verify');
+const userRoute = require('./routes/user');
+const infoRoute = require('./routes/info');
+
+const adminMiddleware = require('./middleware/checkadmin.middleware');
+const loginMiddleware = require('./middleware/checkLogin.middleware');
+
+const app = express();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
+app.set('view engine', 'handlebars');
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -29,11 +40,12 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-
 app.use('/register', registerRoute);
 app.use('/login', loginRoute);
 app.use('/product', productRoute);
 app.use('/verify', verifyRoute);
+app.use('/user', adminMiddleware, userRoute);
+app.use('/info', loginMiddleware, infoRoute);
 
 // catch 404 and forward to error handler
 

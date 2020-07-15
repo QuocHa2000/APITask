@@ -8,16 +8,19 @@ module.exports = async function(req, res, next) {
         throw new Error("You haven't login yet");
     }
     let role;
+    let status;
     try {
         // Kiểm tra có phải vai trò là enterprise hay không
         const verify = jwt.verify(token, process.env.secret_key);
         const checkUser = await user.findOne({ email: verify.email }, function(err, result) {
-            if (result) role = result['role'];
+            if (result) {
+                role = result['role'];
+                status = result['status'];
+            }
         });
 
-        if (role != 'enterprise') throw new Error('You are not allowed to access');
+        if (role != 'enterprise' || status != 'active') throw new Error('You are not allowed to access');
         req.user = checkUser;
-        console.log(checkUser);
         next();
     } catch (error) {
         res.json({

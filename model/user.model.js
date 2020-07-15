@@ -6,7 +6,8 @@ const userSchema = mongoose.Schema({
     role: String,
     name: String,
     phone: String,
-    active: Boolean
+    active: Boolean,
+    status: String
 });
 
 const User = mongoose.model('User', userSchema, 'users');
