@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const Joi = require('joi');
 const register = require('../model/register.model');
 const { sendMail } = require('../controllers/sendmail');
-const { checkRegisterSchema } = require('./checkInput');
+const { checkRegisterSchema } = require('./registerValidate');
 
 
 module.exports.register = async function(req, res, next) {
@@ -15,7 +15,7 @@ module.exports.register = async function(req, res, next) {
         const salt = await bcrypt.genSalt(10);
         const hashPassword = await bcrypt.hash(req.body.password, salt);
 
-        let existEmail = await user.findOne({ email: req.body.email });
+        const existEmail = await user.findOne({ email: req.body.email });
         if (existEmail) {
             throw new Error('Email is exists');
         }

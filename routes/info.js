@@ -1,6 +1,6 @@
 const express = require('express');
 const route = express.Router();
-const controller = require('../controllers/inf.controller');
+const controller = require('../controllers/info.controller');
 
 route.get('/myinfo', controller.getMyInfo);
 route.post('/updateinfo', controller.updateInfo);

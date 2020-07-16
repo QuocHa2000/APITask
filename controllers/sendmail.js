@@ -2,7 +2,7 @@ const nodemailer = require('nodemailer');
 const hbs = require('nodemailer-handlebars')
 
 module.exports.sendMail = function(from, to, subject, html) {
-        let transporter = nodemailer.createTransport({
+        const transporter = nodemailer.createTransport({
             host: "smtp.gmail.com",
             port: 587,
             secure: false, // true for 465, false for other ports

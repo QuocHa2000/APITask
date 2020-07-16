@@ -2,14 +2,12 @@ const user = require('../model/user.model');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Joi = require('joi');
-const { checkLoginSchema } = require('./checkInput');
+const { checkLoginSchema } = require('./loginValidate');
 
 
 module.exports.login = async function(req, res, next) {
     try {
-        Joi.validate(req.body, checkLoginSchema, (err, result) => {
-            if (err) throw new Error(err.message);
-        })
+        await Joi.validate(req.body, checkLoginSchema);
         const userEmail = await user.findOne({ email: req.body.email });
         if (!userEmail) {
             throw new Error('Username or password is incorrect');
@@ -22,7 +20,7 @@ module.exports.login = async function(req, res, next) {
             throw new Error('Username or password is incorrect');
         }
 
-        let token = await jwt.sign({
+        const token = await jwt.sign({
             email: userEmail.email,
             userId: userEmail._id
         }, process.env.secret_key);

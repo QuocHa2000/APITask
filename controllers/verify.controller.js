@@ -2,37 +2,31 @@ const user = require('../model/user.model');
 const jwt = require('jsonwebtoken');
 const register = require('../model/register.model');
 const Joi = require('joi');
-const { checkVerifyCodeSchema, checkVerifyEmailSchema } = require('./checkInput');
+const { checkVerifyCodeSchema, checkVerifyEmailSchema } = require('./verifyValidate');
 const { sendMail } = require('./sendmail');
 
 
 module.exports.verify = async function(req, res, next) {
     // Kích hoạt tài khoản đúng email
     try {
-        Joi.validate(req.body, checkVerifyCodeSchema, (err, result) => {
-            if (err) throw new Error(err.message);
-        })
-        Joi.validate(req.params, checkVerifyEmailSchema, (err, result) => {
-            if (err) throw new Error(err.message);
-        })
-        let { codeValue } = req.body;
-        let userEmail = req.params.email;
+        await Joi.validate(req.body, checkVerifyCodeSchema);
+        await Joi.validate(req.params, checkVerifyEmailSchema);
+        const { codeValue } = req.body;
+        const userEmail = req.params.email;
 
-        let authUser = await register.findOne({ email: userEmail, authCode: codeValue });
-        let registerUser = await user.findOne({ email: userEmail });
+        const authUser = await register.findOne({ email: userEmail, authCode: codeValue });
+        const registerUser = await user.findOne({ email: userEmail });
 
         if (registerUser && !authUser) {
             throw new Error("Your account is not activated");
         }
         if (authUser && registerUser) {
-            await user.findOneAndUpdate({ email: userEmail }, { active: true }, (err, result) => {
-                if (err) throw new Error(err.message);
-                else res.json({
-                    code: 0,
-                    data: result,
-                    message: 'verify success'
-                });
-            })
+            const result = await user.findOneAndUpdate({ email: userEmail }, { active: true });
+            res.json({
+                code: 0,
+                data: result,
+                message: 'verify success'
+            });
         }
     } catch (err) {
         res.json({
@@ -43,9 +37,7 @@ module.exports.verify = async function(req, res, next) {
 
 module.exports.resendMail = async function(req, res) {
     try {
-        await Joi.validate(req.params, checkVerifyEmailSchema, (err, result) => {
-            if (err) throw new Error(err.message)
-        });
+        await Joi.validate(req.params, checkVerifyEmailSchema);
         const codeValue = Math.floor(Math.random() * (999999 - 100000)) + 100000;
 
         await register.create({
