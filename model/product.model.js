@@ -1,19 +1,22 @@
 const mongoose = require('mongoose');
 
 const productSchema = mongoose.Schema({
-    owner: String,
-    //  {
-    //     type: mongoose.Schema.Types.ObjectId,
-    //     ref: 'users',
-    //     required: true,
-    // },
-    name: String,
+    owner: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'users',
+        required: true,
+    },
+    name: {
+        type: String,
+        index: true,
+        required: true
+    },
     price: Number,
     description: String,
     status: String
 })
 
-const Product = mongoose.model('Product', productSchema, 'product');
+const Product = mongoose.model('product', productSchema, 'product');
 
 module.exports = Product;
 // Product.findOne().populate('owner');

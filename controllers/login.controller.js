@@ -10,14 +10,14 @@ module.exports.login = async function(req, res, next) {
         await Joi.validate(req.body, checkLoginSchema);
         const userEmail = await user.findOne({ email: req.body.email });
         if (!userEmail) {
-            throw new Error('Username or password is incorrect');
+            throw { code: 401, message: "Username or password is incorrect" };
         }
         if (userEmail.active == false) {
-            throw new Error('Your account is not activated');
+            throw { code: 401, message: "Username or password is incorrect" };
         }
         const userPassword = await bcrypt.compare(req.body.password, userEmail.password);
         if (!userPassword) {
-            throw new Error('Username or password is incorrect');
+            throw { code: 401, message: "Username or password is incorrect" };
         }
 
         const token = await jwt.sign({
@@ -31,8 +31,6 @@ module.exports.login = async function(req, res, next) {
             token: token
         })
     } catch (err) {
-        res.json({
-            message: err.message
-        })
+        res.json(err)
     }
 }

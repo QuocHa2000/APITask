@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const register = require('../model/register.model');
 const Joi = require('joi');
 const { checkVerifyCodeSchema, checkVerifyEmailSchema } = require('./verifyValidate');
-const { sendMail } = require('./sendmail');
+const { sendEmail } = require('./sendmail');
 
 
 module.exports.verify = async function(req, res, next) {
@@ -18,7 +18,7 @@ module.exports.verify = async function(req, res, next) {
         const registerUser = await user.findOne({ email: userEmail });
 
         if (registerUser && !authUser) {
-            throw new Error("Your account is not activated");
+            throw { code: 401, message: "Your account is not activated" };
         }
         if (authUser && registerUser) {
             const result = await user.findOneAndUpdate({ email: userEmail }, { active: true });
@@ -29,9 +29,7 @@ module.exports.verify = async function(req, res, next) {
             });
         }
     } catch (err) {
-        res.json({
-            message: err.message
-        })
+        res.json(err);
     }
 }
 
@@ -49,16 +47,15 @@ module.exports.resendMail = async function(req, res) {
         const from = '18521308@gm.uit.edu.vn';
         const to = req.params.email;
         const subject = "Hello";
-        const html = `Please click this link to verify your email with code ${codeValue} <a href='http://localhost:4000/verify/${req.params.email}'>http://localhost:4000/verify/${req.body.email}</a>`;
+        const link = `http://localhost:4000/verify/resendmail/${req.params.email}`;
+        // const html = `Please click this link to verify your email with code ${codeValue} <a href='http://localhost:4000/verify/${req.params.email}'>http://localhost:4000/verify/${req.body.email}</a>`;
         // send mail with defined transport object
-        sendMail(from, to, subject, html);
+        sendEmail(from, to, subject, req.params.email, codeValue, link);
         res.json({
             code: 0,
             message: " Resend mail successful"
         })
     } catch (error) {
-        res.json({
-            message: error.message
-        })
+        res.json(error)
     }
 }

@@ -1,8 +1,16 @@
 const mongoose = require('mongoose');
 
 const registerSchema = mongoose.Schema({
-    email: String,
-    authCode: Number,
+    email: {
+        type: String,
+        unique: true,
+        required: true
+    },
+    authCode: {
+        type: Number,
+        unique: true,
+        required: true
+    },
     createdAt: { type: Date, index: { expireAfterSeconds: 3600 } }
 })
 

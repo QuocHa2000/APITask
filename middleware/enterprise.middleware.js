@@ -5,7 +5,7 @@ module.exports = async function(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader.split(' ')[1];
     if (!token) {
-        throw new Error("You haven't login yet");
+        throw { code: 403, message: "You are not login" };
     }
     let role;
     let status;
@@ -19,12 +19,10 @@ module.exports = async function(req, res, next) {
             }
         });
 
-        if (role != 'enterprise' || status != 'active') throw new Error('You are not allowed to access');
+        if (role != 'enterprise' || status != 'active') throw { code: 403, message: 'You are not allowed to access' };
         req.user = checkUser;
         next();
     } catch (error) {
-        res.json({
-            message: error.message
-        })
+        res.json(error)
     }
 }

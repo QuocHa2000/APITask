@@ -8,6 +8,7 @@ route.get('/', controller.getProduct);
 route.post('/', enterpriseVerify, controller.postProduct);
 route.get('/myproduct', controller.getMyProduct);
 route.get('/removeproduct/:id', controller.removeProduct);
+route.get('/findproduct', controller.findProduct);
 route.post('/updateproduct/:id', controller.updateProduct);
 route.post('/changestatusproduct/:id', controller.changeStatusProduct);
 
