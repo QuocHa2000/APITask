@@ -8,7 +8,6 @@ const registerSchema = mongoose.Schema({
     },
     authCode: {
         type: Number,
-        unique: true,
         required: true
     },
     createdAt: { type: Date, index: { expireAfterSeconds: 3600 } }

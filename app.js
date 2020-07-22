@@ -24,6 +24,8 @@ const productRoute = require('./routes/product');
 const verifyRoute = require('./routes/verify');
 const userRoute = require('./routes/user');
 const infoRoute = require('./routes/info');
+const cartRoute = require('./routes/cart');
+const purchaseRoute = require('./routes/purchase');
 
 const adminMiddleware = require('./middleware/checkadmin.middleware');
 const loginMiddleware = require('./middleware/checkLogin.middleware');
@@ -46,6 +48,8 @@ app.use('/product', productRoute);
 app.use('/verify', verifyRoute);
 app.use('/user', adminMiddleware, userRoute);
 app.use('/info', loginMiddleware, infoRoute);
+app.use('/cart', loginMiddleware, cartRoute);
+app.use('/purchase', loginMiddleware, purchaseRoute);
 
 // catch 404 and forward to error handler
 

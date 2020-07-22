@@ -1,12 +1,10 @@
 const jwt = require('jsonwebtoken');
-const user = require('../model/user.model');
+const user = require('../models/user.model');
 
 module.exports = async function(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader.split(' ')[1];
-    if (!token) {
-        throw { code: 403, message: "You are not login" };
-    }
+    if (!token) throw { code: 403, message: "You are not login", data: "Invalid" };
     let role;
     let status;
     try {
@@ -19,7 +17,7 @@ module.exports = async function(req, res, next) {
             }
         });
 
-        if (role != 'enterprise' || status != 'active') throw { code: 403, message: 'You are not allowed to access' };
+        if (role !== 'enterprise' || status !== 'active') throw { code: 403, message: 'You are not allowed to add product', data: "Error" };
         req.user = checkUser;
         next();
     } catch (error) {
