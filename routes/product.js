@@ -7,10 +7,10 @@ const loginVerify = require('../middleware/checkLogin.middleware');
 
 route.get('/', controller.getProduct);
 route.post('/', enterpriseVerify, controller.postProduct);
-route.get('/myproduct', loginVerify, controller.getMyProduct);
-route.get('/removeproduct/:id', loginVerify, controller.removeProduct);
+route.get('/myproduct', enterpriseVerify, controller.getMyProduct);
+route.get('/removeproduct/:id', enterpriseVerify, controller.removeProduct);
 route.get('/findproduct', controller.findProduct);
-route.post('/updateproduct/:id', loginVerify, controller.updateProduct);
+route.post('/updateproduct/:id', enterpriseVerify, controller.updateProduct);
 route.get('/finishorder/:id', function(req, res) {
     res.send(req.params.id);
 })

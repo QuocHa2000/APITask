@@ -1,5 +1,16 @@
 const mongoose = require('mongoose');
-const { number } = require('joi');
+
+const cartSchema = mongoose.Schema({
+    productDetail: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'product',
+        required: true
+    },
+    amount: {
+        type: Number,
+        required: true
+    }
+}, { toJSON: { virtuals: true } })
 
 const userSchema = mongoose.Schema({
     email: {
@@ -29,21 +40,12 @@ const userSchema = mongoose.Schema({
         type: String,
         required: true
     },
-    cart: [
-        // { type: mongoose.Schema.Types.ObjectId, ref: 'product' }
-        {
-            _id: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: 'product',
-                required: true
-            },
-            amount: {
-                type: Number,
-                required: true
-            }
-        }
-    ]
-});
+    cart: [cartSchema]
+}, { toJSON: { virtuals: true } });
+
+cartSchema.virtual('totalPrice').get(function() {
+    return this.amount * this.productDetail.sellPrice;
+})
 
 const User = mongoose.model('users', userSchema, 'users');
 

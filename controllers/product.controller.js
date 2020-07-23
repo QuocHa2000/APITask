@@ -50,7 +50,6 @@ module.exports.getMyProduct = async function(req, res) {
         const page = req.query.page || 1;
         const perPage = 8;
         let skip = (page - 1) * perPage;
-        console.log(req.user);
         const result = await product.find({ owner: req.user._id })
             .populate({ path: 'owner', select: { 'email': 1, 'phone': 1, 'status': 1, 'role': 1 } })
             .limit(perPage)
@@ -67,6 +66,14 @@ module.exports.getMyProduct = async function(req, res) {
 
 module.exports.updateProduct = async function(req, res) {
     try {
+        const joiVal = Joi.validate(req.body, checkProductSchema);
+        if (joiVal.error) {
+            throw {
+                code: 1,
+                message: joiVal.error.message,
+                data: "Invalid"
+            }
+        }
         const result = await product.findOneAndUpdate({ _id: productId, owner: req.user._id }, { $set: req.body });
         res.json({
             code: 0,
@@ -80,9 +87,7 @@ module.exports.updateProduct = async function(req, res) {
 
 module.exports.removeProduct = async function(req, res) {
     try {
-        const productId = req.params.id;
-
-        const result = await product.findOneAndDelete({ _id: productId, owner: req.user._id });
+        const result = await product.findOneAndDelete({ _id: req.params.id, owner: req.user._id });
         res.json({
             code: 0,
             message: 'Delete product successfully',
@@ -105,11 +110,12 @@ module.exports.postProduct = async function(req, res) {
             }
         }
         const newProduct = await product.create({
-            owner: req.user,
+            owner: req.user._id,
             name: req.body.name,
             price: req.body.price,
-            status: 'active',
-            amount: req.body.amount
+            status: req.body.status,
+            amount: req.body.amount,
+            discount: req.body.discount
         });
         res.json({
             code: 0,

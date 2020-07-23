@@ -26,9 +26,16 @@ const productSchema = mongoose.Schema({
     amount: {
         type: Number,
         required: true
+    },
+    discount: {
+        type: Number,
+        required: true
     }
-})
+}, { toJSON: { virtuals: true } });
 
+productSchema.virtual('sellPrice').get(function() {
+    return (this.price * (100 - this.discount) / 100);
+})
 const Product = mongoose.model('product', productSchema, 'product');
 
 module.exports = Product;

@@ -18,7 +18,15 @@ const orderSchema = mongoose.Schema({
     amount: {
         type: Number,
         required: true
+    },
+    sellPrice: {
+        type: Number,
+        required: true
     }
+}, { toJSON: { virtuals: true } });
+
+orderSchema.virtual('totalPrice').get(function() {
+    return this.amount * this.sellPrice;
 })
 
 const orderDetail = mongoose.model('orderDetail', orderSchema, 'orderDetail');
