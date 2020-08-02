@@ -40,7 +40,10 @@ const userSchema = mongoose.Schema({
         type: String,
         required: true
     },
-    cart: [cartSchema]
+    cart: [cartSchema],
+    avatar: {
+        type: String
+    }
 }, { toJSON: { virtuals: true } });
 
 cartSchema.virtual('totalPrice').get(function() {

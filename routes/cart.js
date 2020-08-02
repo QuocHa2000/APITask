@@ -7,5 +7,6 @@ const authEnterprise = require('../middleware/enterprise.middleware');
 route.post('/:id', controller.addToCart);
 route.get('/', controller.getCart);
 route.get('/remove/:id', controller.removeProduct);
+route.post('/updateproduct/:id', controller.updateProduct);
 
 module.exports = route;

@@ -45,6 +45,18 @@ module.exports.getProduct = async function(req, res) {
     }
 }
 
+module.exports.productDetail = async function(req, res) {
+    try {
+        const result = await product.findOne({ _id: req.params.id });
+        res.json({
+            code: 0,
+            message: "Get product detail successfully",
+            data: result
+        })
+    } catch (error) {
+        res.json(error)
+    }
+}
 module.exports.getMyProduct = async function(req, res) {
     try {
         const page = req.query.page || 1;
@@ -114,6 +126,7 @@ module.exports.postProduct = async function(req, res) {
             name: req.body.name,
             price: req.body.price,
             status: req.body.status,
+            sold: 0,
             amount: req.body.amount,
             discount: req.body.discount
         });

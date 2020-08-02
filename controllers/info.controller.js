@@ -3,12 +3,13 @@ const jwt = require('jsonwebtoken');
 const Joi = require('joi');
 const { checkUpdateInfo, checkPassword } = require('../validate/info.validate');
 const bcrypt = require('bcryptjs');
+const fs = require('fs');
+
 
 
 module.exports.getMyInfo = async function(req, res) {
     try {
         const result = await user.find({ email: req.user.email });
-        console.log(result);
         res.json({
             code: 0,
             data: result,
@@ -67,5 +68,30 @@ module.exports.changePassword = async function(req, res) {
 
     } catch (error) {
         res.json(error)
+    }
+}
+module.exports.uploadAvatar = async function(req, res) {
+    try {
+        // const img = fs.readFileSync(req.file.path);
+        // const encodeImage = img.toString('base64');
+        // const finalImage = {
+        //     contentType: req.file.mimetype,
+        //     data: new Buffer(encodeImage, 'base64')
+        // };
+        req.user.avatar = req.file.path.replace(/\\/g, "/");
+        console.log(req.user);
+
+        const data = await req.user.save();
+        res.json({
+            code: 0,
+            message: 'Upload Avatar successfully',
+            data: data
+        })
+    } catch (error) {
+        res.json({
+            code: 1,
+            message: error.message,
+            data: 'Error'
+        })
     }
 }

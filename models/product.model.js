@@ -23,6 +23,10 @@ const productSchema = mongoose.Schema({
         type: String,
         required: true
     },
+    sold: {
+        type: Number,
+        required: true
+    },
     amount: {
         type: Number,
         required: true

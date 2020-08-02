@@ -8,7 +8,6 @@ const { checkRegisterSchema } = require('../validate/register.validate');
 const { checkLoginSchema } = require('../validate/login.validate');
 const { checkVerifyCodeSchema, checkVerifyEmailSchema } = require('../validate/verify.validate');
 
-
 module.exports.register = async function(req, res, next) {
     try {
         const joiVal = Joi.validate(req.body, checkRegisterSchema);

@@ -1,7 +1,6 @@
 const user = require('../models/user.model');
 const product = require('../models/product.model');
 
-
 module.exports.findUser = async function(req, res) {
     try {
         const page = req.query.page || 1;
