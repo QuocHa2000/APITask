@@ -1,10 +1,9 @@
 const mongoose = require('mongoose');
 const orderSchema = mongoose.Schema({
-    product: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'product',
+    product: [{
+        type: Object,
         required: true
-    },
+    }],
     buyer: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'users',
@@ -21,6 +20,10 @@ const orderSchema = mongoose.Schema({
     },
     sellPrice: {
         type: Number,
+        required: true
+    },
+    status: {
+        type: String,
         required: true
     }
 }, { toJSON: { virtuals: true } });

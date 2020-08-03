@@ -34,7 +34,10 @@ const productSchema = mongoose.Schema({
     discount: {
         type: Number,
         required: true
-    }
+    },
+    productImage: [{
+        type: String
+    }]
 }, { toJSON: { virtuals: true } });
 
 productSchema.virtual('sellPrice').get(function() {

@@ -41,7 +41,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 // app.use(express.static(path.join(__dirname, 'public')));
-app.use('/public/upload', express.static('public/upload'));
+app.use('/upload', express.static('public'));
 
 app.use('/register', registerRoute);
 app.use('/login', loginRoute);

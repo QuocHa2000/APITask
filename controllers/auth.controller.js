@@ -7,17 +7,12 @@ const { sendEmail } = require('../utils/sendmail');
 const { checkRegisterSchema } = require('../validate/register.validate');
 const { checkLoginSchema } = require('../validate/login.validate');
 const { checkVerifyCodeSchema, checkVerifyEmailSchema } = require('../validate/verify.validate');
+const { joiFunction } = require('../utils/joival');
 
 module.exports.register = async function(req, res, next) {
     try {
-        const joiVal = Joi.validate(req.body, checkRegisterSchema);
-        if (joiVal.error) {
-            throw {
-                code: 404,
-                message: joiVal.error.message,
-                data: "Invalid"
-            }
-        }
+        const joiVal = joiFunction(req.body, checkRegisterSchema);
+        if (joiVal) throw joiVal;
         const salt = await bcrypt.genSalt(10);
         const hashPassword = await bcrypt.hash(req.body.password, salt);
         const existEmail = await user.findOne({ email: req.body.email });
@@ -63,14 +58,8 @@ module.exports.register = async function(req, res, next) {
 
 module.exports.login = async function(req, res, next) {
     try {
-        const joiVal = Joi.validate(req.body, checkLoginSchema);
-        if (joiVal.error) {
-            throw {
-                code: 1,
-                message: joiVal.error.message,
-                data: "Invalid"
-            }
-        }
+        const joiVal = joiFunction(req.body, checkLoginSchema);
+        if (joiVal) throw joiVal;
         const userEmail = await user.findOne({ email: req.body.email });
         if (!userEmail) {
             throw { code: 401, message: "Username or password is incorrect", data: "Error" };
@@ -140,14 +129,8 @@ module.exports.verify = async function(req, res, next) {
 
 module.exports.resendMail = async function(req, res) {
     try {
-        const joiVal = Joi.validate(req.body, checkVerifyEmailSchema);
-        if (joiVal.error) {
-            throw {
-                code: 1,
-                message: joiVal.error.message,
-                data: "Invalid"
-            }
-        }
+        const joiVal = joiFunction(req.body, checkVerifyEmailSchema);
+        if (joiVal) throw joiVal;
         const codeValue = Math.floor(Math.random() * (999999 - 100000)) + 100000;
 
         await register.create({

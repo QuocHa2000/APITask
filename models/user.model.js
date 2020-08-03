@@ -9,6 +9,10 @@ const cartSchema = mongoose.Schema({
     amount: {
         type: Number,
         required: true
+    },
+    pick: {
+        type: Boolean,
+        required: true
     }
 }, { toJSON: { virtuals: true } })
 

@@ -4,6 +4,7 @@ const Joi = require('joi');
 const { checkUpdateInfo, checkPassword } = require('../validate/info.validate');
 const bcrypt = require('bcryptjs');
 const fs = require('fs');
+const { joiFunction } = require('../utils/joival')
 
 
 
@@ -21,14 +22,8 @@ module.exports.getMyInfo = async function(req, res) {
 }
 module.exports.updateInfo = async function(req, res) {
     try {
-        const joiVal = Joi.validate(req.body, checkUpdateInfo);
-        if (joiVal.error) {
-            throw {
-                code: 1,
-                message: joiVal.error.message,
-                data: "Invalid"
-            }
-        }
+        const joiVal = joiFunction(req.body, checkUpdateInfo);
+        if (joiVal) throw joiVal;
         // Not allow user change role become admin
         if (req.body.role == 'admin') throw { code: 403, message: "You are not allowed to change your role become admin", data: "Error" };
         const result = await user.findOneAndUpdate({ email: req.user.email }, { $set: req.body });
@@ -45,14 +40,8 @@ module.exports.updateInfo = async function(req, res) {
 module.exports.changePassword = async function(req, res) {
     try {
         const { oldPassword, newPassword } = req.body;
-        const joiVal = Joi.validate(req.body, checkPassword);
-        if (joiVal.error) {
-            throw {
-                code: 1,
-                message: joiVal.error.message,
-                data: "Invalid"
-            }
-        }
+        const joiVal = joiFunction(req.body, checkPassword);
+        if (joiVal) throw joiVal;
         const getUser = await user.findOne({ email: req.user.email });
         const valPassword = await bcrypt.compare(oldPassword, getUser.password);
 
@@ -72,14 +61,7 @@ module.exports.changePassword = async function(req, res) {
 }
 module.exports.uploadAvatar = async function(req, res) {
     try {
-        // const img = fs.readFileSync(req.file.path);
-        // const encodeImage = img.toString('base64');
-        // const finalImage = {
-        //     contentType: req.file.mimetype,
-        //     data: new Buffer(encodeImage, 'base64')
-        // };
         req.user.avatar = req.file.path.replace(/\\/g, "/");
-        console.log(req.user);
 
         const data = await req.user.save();
         res.json({
