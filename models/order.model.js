@@ -1,9 +1,24 @@
 const mongoose = require('mongoose');
-const orderSchema = mongoose.Schema({
-    product: [{
+const productSchema = mongoose.Schema({
+    product: {
         type: Object,
         required: true
-    }],
+    },
+    amount: {
+        type: Number,
+        required: true
+    },
+    sellPrice: {
+        type: Number,
+        required: true
+    },
+    totalProductPrice: {
+        type: Number,
+        required: true
+    }
+})
+const orderSchema = mongoose.Schema({
+    products: [productSchema],
     buyer: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'users',
@@ -14,14 +29,6 @@ const orderSchema = mongoose.Schema({
         required: true,
         ref: 'users'
     },
-    amount: {
-        type: Number,
-        required: true
-    },
-    sellPrice: {
-        type: Number,
-        required: true
-    },
     status: {
         type: String,
         required: true
@@ -29,7 +36,11 @@ const orderSchema = mongoose.Schema({
 }, { toJSON: { virtuals: true } });
 
 orderSchema.virtual('totalPrice').get(function() {
-    return this.amount * this.sellPrice;
+    let totalPrice = 0;
+    for (product of this.products) {
+        totalPrice += product.totalProductPrice;
+    }
+    return totalPrice;
 })
 
 const orderDetail = mongoose.model('orderDetail', orderSchema, 'orderDetail');

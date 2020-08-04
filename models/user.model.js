@@ -53,6 +53,13 @@ const userSchema = mongoose.Schema({
 cartSchema.virtual('totalPrice').get(function() {
     return this.amount * this.productDetail.sellPrice;
 })
+userSchema.virtual('total').get(function() {
+    let totalMoney = 0;
+    for (product of this.cart) {
+        totalMoney += product.totalPrice;
+    }
+    return totalMoney;
+})
 
 const User = mongoose.model('users', userSchema, 'users');
 
