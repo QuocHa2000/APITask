@@ -1,14 +1,12 @@
 const express = require('express');
 const route = express.Router();
 const controller = require('../controllers/cart.controller');
-const authEnterprise = require('../middleware/enterprise.middleware');
 
-
-route.post('/:id', controller.addToCart);
+route.post('/', controller.addToCart);
 route.get('/', controller.getCart);
-route.get('/remove/:id', controller.removeProduct);
-route.get('/changepickproduct/:id', controller.changePickProduct);
+route.post('/removeproduct', controller.removeProduct);
+route.post('/changepickproduct', controller.changePickProduct);
 route.post('/changepick/all', controller.changePickAll);
-route.post('/updateproduct/:id', controller.updateProduct);
+route.post('/updateproduct', controller.updateProduct);
 
 module.exports = route;

@@ -10,10 +10,15 @@ module.exports.findUser = async function(req, res) {
         res.json({
             code: 0,
             message: "Find user successfully",
-            data: foundUser
+            data: foundUser,
+            totalPage: Math.ceil(result.length / perPage)
         })
     } catch (error) {
-        res.json(error);
+        res.json({
+            code: 1,
+            message: error.message,
+            data: "Error"
+        });;
     }
 }
 module.exports.getUsers = async function(req, res) {
@@ -25,10 +30,15 @@ module.exports.getUsers = async function(req, res) {
         res.json({
             code: 0,
             data: result,
-            message: "Get all user successfully"
+            message: "Get all user successfully",
+            totalPage: Math.ceil(result.length / perPage)
         })
     } catch (error) {
-        res.json(error)
+        res.json({
+            code: 1,
+            message: error.message,
+            data: "Error"
+        });
     }
 }
 
@@ -45,6 +55,10 @@ module.exports.changeUserStatus = async function(req, res) {
             data: result
         })
     } catch (err) {
-        res.json(err)
+        res.json({
+            code: 1,
+            message: error.message,
+            data: "Error"
+        });
     }
 }

@@ -17,7 +17,7 @@ module.exports.register = async function(req, res, next) {
         const hashPassword = await bcrypt.hash(req.body.password, salt);
         const existEmail = await user.findOne({ email: req.body.email });
         if (existEmail) {
-            throw { code: 401, message: "Email existed", data: "Invalid" }
+            throw { message: "Email existed" }
         }
         const codeValue = Math.floor(Math.random() * (999999 - 100000)) + 100000;
 
@@ -52,7 +52,11 @@ module.exports.register = async function(req, res, next) {
             message: 'Register success'
         });
     } catch (err) {
-        res.json(err)
+        res.json({
+            code: 1,
+            message: error.message,
+            data: "Error"
+        });
     }
 }
 
@@ -62,14 +66,14 @@ module.exports.login = async function(req, res, next) {
         if (joiVal) throw joiVal;
         const userEmail = await user.findOne({ email: req.body.email });
         if (!userEmail) {
-            throw { code: 401, message: "Username or password is incorrect", data: "Error" };
+            throw { message: "Username or password is incorrect" };
         }
         if (userEmail.active == false) {
-            throw { code: 401, message: "Your account is not activated", data: "Error" };
+            throw { message: "Your account is not activated" };
         }
         const userPassword = await bcrypt.compare(req.body.password, userEmail.password);
         if (!userPassword) {
-            throw { code: 401, message: "Username or password is incorrect", data: "Error" };
+            throw { message: "Username or password is incorrect" };
         }
         const token = await jwt.sign({
             email: userEmail.email,
@@ -82,7 +86,11 @@ module.exports.login = async function(req, res, next) {
             token: token
         })
     } catch (err) {
-        res.json(err)
+        res.json({
+            code: 1,
+            message: error.message,
+            data: "Error"
+        });
     }
 }
 
@@ -91,19 +99,11 @@ module.exports.verify = async function(req, res, next) {
     try {
         const joiCodeVal = Joi.validate(req.body, checkVerifyCodeSchema);
         if (joiCodeVal.error) {
-            throw {
-                code: 1,
-                message: joiCodeVal.error.message,
-                data: "Invalid"
-            }
+            throw { message: joiCodeVal.error.message }
         }
         const joiEmailVal = Joi.validate(req.params, checkVerifyEmailSchema);
         if (joiEmailVal.error) {
-            throw {
-                code: 1,
-                message: joiEmailVal.error.message,
-                data: "Invalid"
-            }
+            throw { message: joiEmailVal.error.message }
         }
         const { codeValue } = req.body;
         const userEmail = req.params.email;
@@ -112,7 +112,7 @@ module.exports.verify = async function(req, res, next) {
         const registerUser = await user.findOne({ email: userEmail });
 
         if (registerUser && !authUser) {
-            throw { code: 401, message: "Your code expired, Please choose send code again to verify", data: "Invalid" };
+            throw { message: "Your code expired, Please choose send code again to verify" };
         }
         if (authUser && registerUser) {
             const result = await user.findOneAndUpdate({ email: userEmail }, { active: true });
@@ -123,7 +123,11 @@ module.exports.verify = async function(req, res, next) {
             });
         }
     } catch (err) {
-        res.json(err);
+        res.json({
+            code: 1,
+            message: error.message,
+            data: "Error"
+        });
     }
 }
 
@@ -151,6 +155,10 @@ module.exports.resendMail = async function(req, res) {
             message: " Resend mail successfully"
         })
     } catch (error) {
-        res.json(error)
+        res.json({
+            code: 1,
+            message: error.message,
+            data: "Error"
+        });
     }
 }

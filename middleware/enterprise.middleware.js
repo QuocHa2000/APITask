@@ -17,7 +17,7 @@ module.exports = async function(req, res, next) {
             }
         });
 
-        if (role !== 'enterprise' || status !== 'active') throw { code: 403, message: 'You are not allowed to add product', data: "Error" };
+        if (role !== 'enterprise' || status !== 'active') throw { code: 403, message: 'You are not allowed to access', data: "Error" };
         req.user = checkUser;
         next();
     } catch (error) {

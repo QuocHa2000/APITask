@@ -17,7 +17,11 @@ module.exports.getMyInfo = async function(req, res) {
             message: "Get info successfully"
         })
     } catch (error) {
-        res.json(error)
+        res.json({
+            code: 1,
+            message: error.message,
+            data: "Error"
+        });
     }
 }
 module.exports.updateInfo = async function(req, res) {
@@ -25,7 +29,7 @@ module.exports.updateInfo = async function(req, res) {
         const joiVal = joiFunction(req.body, checkUpdateInfo);
         if (joiVal) throw joiVal;
         // Not allow user change role become admin
-        if (req.body.role == 'admin') throw { code: 403, message: "You are not allowed to change your role become admin", data: "Error" };
+        if (req.body.role == 'admin') throw { message: "You are not allowed to change your role become admin" };
         const result = await user.findOneAndUpdate({ email: req.user.email }, { $set: req.body });
         res.json({
             code: 0,
@@ -34,7 +38,11 @@ module.exports.updateInfo = async function(req, res) {
         })
 
     } catch (error) {
-        res.json(error)
+        res.json({
+            code: 1,
+            message: error.message,
+            data: "Error"
+        });
     }
 }
 module.exports.changePassword = async function(req, res) {
@@ -45,7 +53,7 @@ module.exports.changePassword = async function(req, res) {
         const getUser = await user.findOne({ email: req.user.email });
         const valPassword = await bcrypt.compare(oldPassword, getUser.password);
 
-        if (!valPassword) throw { code: 401, message: "your old password is incorrect", data: "Error" };
+        if (!valPassword) throw { message: "your old password is incorrect" };
         const salt = await bcrypt.genSalt(10);
         const hashPassword = await bcrypt.hash(newPassword, salt);
         const result = await user.findOneAndUpdate({ email: req.user.email }, { $set: { password: hashPassword } });
@@ -56,7 +64,11 @@ module.exports.changePassword = async function(req, res) {
         })
 
     } catch (error) {
-        res.json(error)
+        res.json({
+            code: 1,
+            message: error.message,
+            data: "Error"
+        });
     }
 }
 module.exports.uploadAvatar = async function(req, res) {

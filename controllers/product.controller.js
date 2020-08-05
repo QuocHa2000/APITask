@@ -18,10 +18,15 @@ module.exports.findProduct = async function(req, res) {
         res.json({
             code: 0,
             message: "Find product successfully",
-            data: foundProduct
+            data: foundProduct,
+            totalPage: Math.ceil(foundProduct.length / perPage)
         })
     } catch (error) {
-        res.json(error);
+        res.json({
+            code: 1,
+            message: error.message,
+            data: "Error"
+        });;
     }
 }
 
@@ -40,7 +45,11 @@ module.exports.getProduct = async function(req, res) {
             data: result
         });
     } catch (error) {
-        res.json(error)
+        res.json({
+            code: 1,
+            message: error.message,
+            data: "Error"
+        });
     }
 }
 
@@ -53,7 +62,11 @@ module.exports.productDetail = async function(req, res) {
             data: result
         })
     } catch (error) {
-        res.json(error)
+        res.json({
+            code: 1,
+            message: error.message,
+            data: "Error"
+        });
     }
 }
 module.exports.getMyProduct = async function(req, res) {
@@ -68,7 +81,8 @@ module.exports.getMyProduct = async function(req, res) {
         res.json({
             code: 0,
             message: "Get my products successfully",
-            data: result
+            data: result,
+            totalPage: Math.ceil(result.length / perPage)
         });
     } catch (err) {
         res.json(err)

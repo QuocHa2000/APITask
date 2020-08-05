@@ -44,7 +44,7 @@ const userSchema = mongoose.Schema({
         type: String,
         required: true
     },
-    cart: [cartSchema],
+    cart: { default: [], type: [cartSchema] },
     avatar: {
         type: String
     }
@@ -55,8 +55,9 @@ cartSchema.virtual('totalPrice').get(function() {
 })
 userSchema.virtual('total').get(function() {
     let totalMoney = 0;
+    if (!this.cart) return;
     for (product of this.cart) {
-        totalMoney += product.totalPrice;
+        if (product.pick === true) totalMoney += product.totalPrice;
     }
     return totalMoney;
 })
