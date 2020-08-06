@@ -6,10 +6,7 @@ const loginMiddleware = require('../middleware/checkLogin.middleware');
 
 route.get('/mysellingorder', authEnterprise, controller.mySellingOrder);
 route.post('/mybuyingorder', loginMiddleware, controller.myBuyingOrder);
-route.post('/changeorderstatus', authEnterprise, controller.changeOrderStatus);
-// route.post('/gettingorder', authEnterprise, controller.gettingOrder);
-// route.post('/finishorder', loginMiddleware, controller.finishOrder);
+route.post('/changeorderstatus', loginMiddleware, controller.changeOrderStatus);
 route.get('/purchaseproduct', loginMiddleware, controller.purchaseProduct);
-// route.post('/cancelorder', loginMiddleware, controller.cancelOrder);
 
 module.exports = route;

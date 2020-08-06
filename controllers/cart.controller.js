@@ -4,6 +4,7 @@ const order = require('../models/order.model');
 const { checkUpdateProduct } = require('../validate/updateproduct.validate');
 const { checkPickProduct } = require('../validate/checkpick.validate');
 const { joiFunction } = require('../utils/joival');
+const joiObjectid = require('joi-objectid');
 
 module.exports.getCart = async function(req, res) {
     try {
@@ -73,6 +74,7 @@ module.exports.changePickProduct = async function(req, res) {
     try {
         const joiVal = joiFunction(req.body, checkPickProduct);
         if (joiVal) throw joiVal;
+        if (JSON.stringify(req.user.cart) === JSON.stringify([])) throw { message: "Your cart is empty" };
         const productsArray = req.body;
         const productsInCart = req.user.cart;
         for (pro of productsArray) {

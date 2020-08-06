@@ -4,6 +4,7 @@ const order = require('../models/order.model');
 const { joiFunction } = require('../utils/joival');
 const { changeStatusOfOrder } = require('../validate/changestatusorder.validate');
 const { checkGetOrder } = require('../validate/checkgetorder.validate');
+const { db } = require('../models/order.model');
 
 module.exports.purchaseProduct = async function(req, res) {
     try {
@@ -46,29 +47,35 @@ module.exports.purchaseProduct = async function(req, res) {
 }
 module.exports.changeOrderStatus = async function(req, res) {
     try {
+        const session = await db.startSession();
+        session.startTransaction();
+
         const joiVal = joiFunction(req.body, changeStatusOfOrder);
         if (joiVal) throw joiVal;
         const needOrder = await order.findOne({ _id: req.body.orderId });
         if (!needOrder) throw { message: 'Order doesn\'t exists' };
         const status = req.body.status;
-        let result;
+        let result, quantity;
         if (status === 'confirm') {
             if (req.user._id.toString() !== needOrder.owner.toString() || needOrder.status !== 'waiting-for-confirming')
                 throw { message: 'You are not allowed to access' }
-            result = await order.findOneAndUpdate({ _id: req.body.orderId }, { $set: { status: 'waiting-for-getting-order' } });
-        } else if (status === 'getorder') {
-            if (req.user._id.toString() !== needOrder.owner.toString() || needOrder.status !== 'waiting-for-getting-order')
+            result = await order.findOneAndUpdate({ _id: req.body.orderId }, { $set: { status: 'waiting-for-picking-up-order' } });
+        } else if (status === 'pickup') {
+            if (req.user._id.toString() !== needOrder.owner.toString() || needOrder.status !== 'waiting-for-picking-up-order')
                 throw { message: 'You are not allowed to access' }
-            result = await order.findOneAndUpdate({ _id: req.body.orderId }, { $set: { status: 'Shipping' } })
-        } else if (status === 'finishorder') {
-            if (needOrder.buyer.toString() !== req.user._id.toString() || needOrder.status !== 'Shipping')
+            result = await order.findOneAndUpdate({ _id: req.body.orderId }, { $set: { status: 'shipping' } })
+        } else if (status === 'finish') {
+            if (needOrder.buyer.toString() !== req.user._id.toString() || needOrder.status !== 'shipping')
                 throw { message: 'You are not allowed to access' };
             result = await order.findOneAndUpdate({ _id: req.body.orderId }, { $set: { status: 'Completed' } })
-        } else if (status === 'cancelorder') {
+        } else if (status === 'cancel') {
             if (needOrder.status !== 'waiting-for-confirming') throw { message: 'You are not allowed to access' };
-            await product.findOneAndUpdate({ _id: needOrder.product._id }, { $inc: { amount: (needOrder.amount), sold: -(needOrder.amount) } });
-            result = await order.findOneAndUpdate({ $and: [{ _id: req.body.orderId }, { $or: [{ owner: req.user._id }, { buyer: req.user._id }] }] }, { $set: { status: 'Canceled' } });
+            quantity = await product.findOneAndUpdate({ _id: needOrder.product._id }, { $inc: { amount: (needOrder.amount), sold: -(needOrder.amount) } }, { session: session });
+            result = await order.findOneAndUpdate({ $and: [{ _id: req.body.orderId }, { $or: [{ owner: req.user._id }, { buyer: req.user._id }] }] }, { $set: { status: 'Canceled' } }, { session: session });
         }
+        await session.commitTransaction();
+        if (result.modifiedCount == 0 || quantity.modifiedCount == 0) await session.abortTransaction();
+        session.endSession();
         res.json({
             code: 0,
             message: 'Confirm order successfully',
@@ -83,73 +90,6 @@ module.exports.changeOrderStatus = async function(req, res) {
     }
 }
 
-// module.exports.gettingOrder = async function(req, res) {
-//     try {
-//         const joiVal = joiFunction(req.body, changeStatusOrder);
-//         if (joiVal) throw joiVal;
-//         const needOrder = await order.findOne({ _id: req.body.orderId });
-//         if (!needOrder) throw { message: 'Order doesn\'t exists' };
-//         if (req.user._id.toString() !== needOrder.owner.toString() || needOrder.status !== 'waiting-for-getting-order') {
-//             throw { message: 'You are not allowed to access' }
-//         }
-//         const result = await order.findOneAndUpdate({ _id: req.body.orderId }, { $set: { status: 'Shipping' } })
-//         res.json({
-//             code: 0,
-//             message: 'Getting order successfully',
-//             data: result
-//         })
-//     } catch (error) {
-//         res.json({
-//             code: 1,
-//             message: error.message,
-//             data: 'Error'
-//         })
-//     }
-// }
-// module.exports.finishOrder = async function(req, res) {
-//     try {
-//         const joiVal = joiFunction(req.body, changeStatusOrder);
-//         if (joiVal) throw joiVal;
-//         const needOrder = await order.findOne({ _id: req.body.orderId });
-//         if (!needOrder) throw { message: 'Order doesn\'t exists' }
-//         if (needOrder.buyer.toString() !== req.user._id.toString() || needOrder.status !== 'Shipping')
-//             throw { message: 'You are not allowed to access' };
-//         const result = await order.findOneAndUpdate({ _id: req.body.orderId }, { $set: { status: 'Completed' } })
-//         res.json({
-//             code: 0,
-//             message: 'Finish order successfully',
-//             data: result
-//         })
-//     } catch (error) {
-//         res.json({
-//             code: 1,
-//             message: error.message,
-//             data: 'Error'
-//         })
-//     }
-// }
-// module.exports.cancelOrder = async function(req, res) {
-//     try {
-//         const joiVal = joiFunction(req.body, changeStatusOrder);
-//         if (joiVal) throw joiVal;
-//         const needOrder = await order.findOne({ _id: req.body.orderId });
-//         if (!needOrder) throw { message: 'Order doesn\'t exists' };
-//         if (needOrder.status !== 'waiting-for-confirming') throw { message: 'You are not allowed to access' };
-//         await product.findOneAndUpdate({ _id: needOrder.product._id }, { $inc: { amount: (needOrder.amount), sold: -(needOrder.amount) } });
-//         const result = await order.findOneAndUpdate({ $and: [{ _id: req.body.orderId }, { $or: [{ owner: req.user._id }, { buyer: req.user._id }] }] }, { $set: { status: 'Canceled' } });
-//         res.json({
-//             code: 0,
-//             message: "Cancel order successfully",
-//             data: result
-//         })
-//     } catch (error) {
-//         res.json({
-//             code: 1,
-//             message: error.message,
-//             data: 'Error'
-//         })
-//     }
-// }
 module.exports.myBuyingOrder = async function(req, res) {
     try {
         const joiVal = joiFunction(req.body, checkGetOrder);
