@@ -64,7 +64,7 @@ module.exports.login = async function(req, res, next) {
     try {
         const joiVal = joiFunction(req.body, checkLoginSchema);
         if (joiVal) throw joiVal;
-        const userEmail = await user.findOne({ email: req.body.email });
+        const userEmail = await user.findOne({ email: req.body.email }).populate('cart.productDetail');
         if (!userEmail) {
             throw { message: "Username or password is incorrect" };
         }

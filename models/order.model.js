@@ -26,7 +26,7 @@ const orderSchema = mongoose.Schema({
 }, { toJSON: { virtuals: true } });
 
 orderSchema.virtual('totalPrice').get(function() {
-    return this.product.price * this.product.discount / 100 * this.amount;
+    return this.product.price * (100 - this.product.discount) / 100 * this.amount;
 })
 
 const orderDetail = mongoose.model('orderDetail', orderSchema, 'orderDetail');
