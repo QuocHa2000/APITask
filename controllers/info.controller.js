@@ -4,9 +4,7 @@ const Joi = require('joi');
 const { checkUpdateInfo, checkPassword } = require('../validate/info.validate');
 const bcrypt = require('bcryptjs');
 const fs = require('fs');
-const { joiFunction } = require('../utils/joival')
-
-
+const { joiFunction } = require('../utils/joival');
 
 module.exports.getMyInfo = async function(req, res) {
     try {

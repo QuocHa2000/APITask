@@ -1,7 +1,7 @@
 const product = require('../models/product.model');
 const user = require('../models/user.model');
 const Joi = require('joi');
-const { checkProductSchema } = require('../validate/product.validate');
+const { checkPostProduct, checkProductDetail, checkUpdateProductSchema } = require('../validate/product.validate');
 const jwt = require('jsonwebtoken');
 const { joiFunction } = require('../utils/joival');
 
@@ -55,6 +55,8 @@ module.exports.getProduct = async function(req, res) {
 
 module.exports.productDetail = async function(req, res) {
     try {
+        const joiVal = joiFunction(req.params, checkProductDetail);
+        if (joiVal) throw joiVal;
         const result = await product.findOne({ _id: req.params.id });
         res.json({
             code: 0,
@@ -91,7 +93,7 @@ module.exports.getMyProduct = async function(req, res) {
 
 module.exports.updateProduct = async function(req, res) {
     try {
-        const joiVal = Joi.validate(req.body, checkProductSchema);
+        const joiVal = Joi.validate(req.body, checkUpdateProductSchema);
         if (joiVal.error) {
             throw {
                 code: 1,
@@ -103,7 +105,7 @@ module.exports.updateProduct = async function(req, res) {
         for (file of req.files) {
             productImage.push(file.path.replace(/\\/g, '/'));
         }
-        const result = await product.findOneAndUpdate({ _id: req.params.id, owner: req.user._id }, { $set: req.body, productImage });
+        const result = await product.findOneAndUpdate({ _id: req.body._id, owner: req.user._id }, { $set: req.body, productImage });
         res.json({
             code: 0,
             message: " Update product successfully",
@@ -116,7 +118,7 @@ module.exports.updateProduct = async function(req, res) {
 
 module.exports.removeProduct = async function(req, res) {
     try {
-        const result = await product.findOneAndDelete({ _id: req.params.id, owner: req.user._id });
+        const result = await product.findOneAndDelete({ _id: req.body.id, owner: req.user._id });
         res.json({
             code: 0,
             message: 'Delete product successfully',
@@ -129,7 +131,7 @@ module.exports.removeProduct = async function(req, res) {
 
 module.exports.postProduct = async function(req, res) {
     try {
-        const joiVal = joiFunction(req.body, checkProductSchema);
+        const joiVal = joiFunction(req.body, checkPostProduct);
         if (joiVal) throw joiVal;
         let productImage = [];
         for (file of req.files) {

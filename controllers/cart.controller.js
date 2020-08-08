@@ -1,10 +1,8 @@
 const user = require('../models/user.model');
 const product = require('../models/product.model');
 const order = require('../models/order.model');
-const { checkUpdateProduct } = require('../validate/updateproduct.validate');
-const { checkPickProduct } = require('../validate/checkpick.validate');
+const { checkPickProduct, checkUpdateProduct } = require('../validate/cart.validate')
 const { joiFunction } = require('../utils/joival');
-const joiObjectid = require('joi-objectid');
 
 module.exports.getCart = async function(req, res) {
     try {
@@ -69,7 +67,6 @@ module.exports.changeInCart = async function(req, res) {
     }
 }
 
-
 module.exports.changePickProduct = async function(req, res) {
     try {
         const joiVal = joiFunction(req.body, checkPickProduct);
@@ -77,6 +74,11 @@ module.exports.changePickProduct = async function(req, res) {
         if (JSON.stringify(req.user.cart) === JSON.stringify([])) throw { message: "Your cart is empty" };
         const productsArray = req.body;
         const productsInCart = req.user.cart;
+        if (req.body.length > req.user.cart.length) throw { message: "Amount of product in cart is less than your request" };
+        for (item of req.body) {
+            if (!productsInCart.find(pro => pro.productDetail.toString() === item.productId.toString()))
+                throw { message: `${JSON.stringify(item)} is not in your cart` };
+        }
         for (pro of productsArray) {
             let productInCart = productsInCart.find(item => item.productDetail.toString() == pro.productId.toString());
             productInCart.pick = pro.pick;

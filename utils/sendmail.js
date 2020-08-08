@@ -14,8 +14,8 @@ module.exports.sendEmail = function(from, to, subject, name, code, link) {
         port: 587,
         secure: false, // true for 465, false for other ports
         auth: {
-            user: '18521308@gm.uit.edu.vn', // generated ethereal user
-            pass: '1804635309', // generated ethereal password
+            user: process.env.user, // generated ethereal user
+            pass: process.env.pass, // generated ethereal password
         },
     });
     const body = template.replace("{{name}}", name).replace(/{{link}}/g, link).replace("{{code}}", code);

@@ -4,6 +4,6 @@ const controller = require('../controllers/user.controller');
 
 route.get('/', controller.getUsers);
 route.get('/finduser', controller.findUser);
-route.post('/changestatus/:id', controller.changeUserStatus);
+route.post('/changestatus', controller.changeUserStatus);
 
 module.exports = route;

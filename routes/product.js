@@ -28,8 +28,8 @@ route.get('/', controller.getProduct);
 route.post('/', enterpriseVerify, upload.array('image', 10), controller.postProduct);
 route.get('/productdetail/:id', controller.productDetail);
 route.get('/myproduct', enterpriseVerify, controller.getMyProduct);
-route.get('/removeproduct/:id', enterpriseVerify, controller.removeProduct);
+route.get('/removeproduct', enterpriseVerify, controller.removeProduct);
 route.get('/findproduct', controller.findProduct);
-route.post('/updateproduct/:id', enterpriseVerify, upload.array('image', 10), controller.updateProduct);
+route.post('/updateproduct', enterpriseVerify, upload.array('image', 10), controller.updateProduct);
 
 module.exports = route;

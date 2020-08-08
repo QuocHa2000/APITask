@@ -1,6 +1,7 @@
 const user = require('../models/user.model');
 const product = require('../models/product.model');
-
+const { changeUserStatus } = require('../validate/user.validate');
+const { joiFunction } = require('../utils/joival');
 module.exports.findUser = async function(req, res) {
     try {
         const page = req.query.page || 1;
@@ -18,7 +19,7 @@ module.exports.findUser = async function(req, res) {
             code: 1,
             message: error.message,
             data: "Error"
-        });;
+        });
     }
 }
 module.exports.getUsers = async function(req, res) {
@@ -44,11 +45,13 @@ module.exports.getUsers = async function(req, res) {
 
 module.exports.changeUserStatus = async function(req, res) {
     try {
+        const joiVal = joiFunction(req.body, changeUserStatus);
+        if (joiVal) throw joiVal;
         let productStatus;
         if (req.body.status === 'active') productStatus = 'active';
         else productStatus = 'hide';
-        const result = await user.findOneAndUpdate({ _id: req.params.id }, { $set: { status: req.body.status } });
-        await product.updateMany({ owner: req.params.email }, { $set: { status: productStatus } });
+        const result = await user.findOneAndUpdate({ _id: req.body.id }, { $set: { status: req.body.status } });
+        await product.updateMany({ owner: req.body.id }, { $set: { status: productStatus } });
         res.json({
             code: 0,
             message: "Change status successfully",

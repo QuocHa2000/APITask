@@ -2,18 +2,23 @@ const user = require('../models/user.model');
 const product = require('../models/product.model');
 const order = require('../models/order.model');
 const { joiFunction } = require('../utils/joival');
-const { changeStatusOfOrder } = require('../validate/changestatusorder.validate');
-const { checkGetOrder } = require('../validate/checkgetorder.validate');
+const { checkGetOrder, changeStatusOfOrder } = require('../validate/order.validate');
 const { db } = require('../models/order.model');
 
 module.exports.purchaseProduct = async function(req, res) {
     try {
         const allProduct = [...req.user.cart];
-        if (allProduct.toString() == [].toString()) throw { message: 'Cart is empty' }
+        if (allProduct.toString() == [].toString()) throw { message: 'Cart is empty' };
+        let productArray = [];
+        for (item of allProduct) {
+            let pro = await product.findOne({ _id: item.productDetail });
+            if (!pro) throw { message: `product : ${item} doesn\'t exists, please remove it in your cart and repurchase` }
+            else productArray.push(pro);
+        }
         let pushProduct = [];
         for (item of allProduct) {
             if (item.pick == true) {
-                let needProduct = await product.findOne({ _id: item.productDetail });
+                let needProduct = productArray.find(pro => pro._id.toString() === item.productDetail.toString());
                 pushProduct.push({ product: needProduct, amount: item.amount });
             }
         }
@@ -56,6 +61,8 @@ module.exports.changeOrderStatus = async function(req, res) {
         if (!needOrder) throw { message: 'Order doesn\'t exists' };
         const status = req.body.status;
         let result, quantity;
+        if (status !== 'confirm' && status !== 'pickup' && status !== 'finish' && status !== 'cancel')
+            throw { message: 'Wrong status ' };
         if (status === 'confirm') {
             if (req.user._id.toString() !== needOrder.owner.toString() || needOrder.status !== 'waiting-for-confirming')
                 throw { message: 'You are not allowed to access' }
@@ -78,7 +85,7 @@ module.exports.changeOrderStatus = async function(req, res) {
         session.endSession();
         res.json({
             code: 0,
-            message: 'Confirm order successfully',
+            message: 'Change order status successfully',
             data: result
         })
     } catch (error) {
@@ -90,22 +97,30 @@ module.exports.changeOrderStatus = async function(req, res) {
     }
 }
 
-module.exports.myBuyingOrder = async function(req, res) {
+module.exports.myOrder = async function(req, res) {
     try {
         const joiVal = joiFunction(req.body, checkGetOrder);
         if (joiVal) throw joiVal;
         const page = req.query.page || 1;
         const perPage = 8;
         let skip = (page - 1) * perPage;
-        let result;
+        let result, role = req.body.role;
+        let status = req.body.status;
+        if (status !== 'waiting-for-confirming' && status !== 'waiting-for-getting-order' && status !== 'shipping' && status !== 'completed' && status !== 'canceled' && status !== 'all')
+            throw { message: "Wrong order status" };
         if (req.body.status === 'all') {
-            result = await order.find({ buyer: req.user._id })
+            result = await order.find({
+                    [role]: req.user._id
+                })
                 .populate({ path: 'buyer', select: { email: 1, phone: 1, name: 1 } })
                 .populate({ path: 'owner', select: { email: 1 } })
                 .limit(perPage)
                 .skip(skip);
         } else {
-            result = await order.find({ buyer: req.user._id, status: req.body.status })
+            result = await order.find({
+                    [role]: req.user._id,
+                    status: req.body.status
+                })
                 .populate({ path: 'buyer', select: { email: 1, phone: 1, name: 1 } })
                 .populate({ path: 'owner', select: { email: 1 } })
                 .limit(perPage)
@@ -113,42 +128,7 @@ module.exports.myBuyingOrder = async function(req, res) {
         }
         res.json({
             code: 1,
-            message: 'Get my buying orders successfully',
-            data: result,
-            totalPage: Math.ceil(result.length / perPage)
-        })
-    } catch (error) {
-        res.json({
-            code: 1,
-            message: error.message,
-            data: 'Error'
-        })
-    }
-}
-module.exports.mySellingOrder = async function(req, res) {
-    try {
-        const joiVal = joiFunction(req.body, checkGetOrder);
-        if (joiVal) throw joiVal;
-        const page = req.query.page || 1;
-        const perPage = 8;
-        let skip = (page - 1) * perPage;
-        let result;
-        if (req.body.status === 'all') {
-            result = await order.find({ owner: req.user._id })
-                .populate({ path: 'buyer', select: { email: 1, phone: 1, name: 1 } })
-                .populate({ path: 'owner', select: { email: 1 } })
-                .limit(perPage)
-                .skip(skip);
-        } else {
-            result = await order.find({ owner: req.user._id, status: req.body.status })
-                .populate({ path: 'buyer', select: { email: 1, phone: 1, name: 1 } })
-                .populate({ path: 'owner', select: { email: 1 } })
-                .limit(perPage)
-                .skip(skip);
-        }
-        res.json({
-            code: 0,
-            message: 'Get all orders successfully',
+            message: 'Get my orders successfully',
             data: result,
             totalPage: Math.ceil(result.length / perPage)
         })

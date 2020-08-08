@@ -44,8 +44,6 @@ module.exports.register = async function(req, res, next) {
             active: false,
             status: 'active'
         }]);
-        // let newuser = await user.create(req.body);
-        // res.json(newuser);
         res.json({
             code: 0,
             data: newuser,
@@ -135,7 +133,7 @@ module.exports.resendMail = async function(req, res) {
     try {
         const joiVal = joiFunction(req.body, checkVerifyEmailSchema);
         if (joiVal) throw joiVal;
-        const codeValue = Math.floor(Math.random() * (999999 - 100000)) + 100000;
+        const codeValue = Math.floor(Math.random() * 899999) + 100000;
 
         await register.create({
             "createdAt": new Date(),

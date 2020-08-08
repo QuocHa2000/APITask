@@ -23,6 +23,6 @@ const upload = multer({
 route.get('/myinfo', controller.getMyInfo);
 route.post('/updateinfo', controller.updateInfo);
 route.post('/changepassword', controller.changePassword);
-route.post('/uploadAvatar/:id', upload.single('avatar'), controller.uploadAvatar);
+route.post('/uploadAvatar', upload.single('avatar'), controller.uploadAvatar);
 
 module.exports = route;
