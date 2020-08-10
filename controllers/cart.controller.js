@@ -1,23 +1,16 @@
-const user = require('../models/user.model');
-const product = require('../models/product.model');
-const order = require('../models/order.model');
+const userModel = require('../models/user.model');
+const productModel = require('../models/product.model');
 const { checkPickProduct, checkUpdateProduct } = require('../validate/cart.validate')
-const { joiFunction } = require('../utils/joival');
+const { validateInput } = require('../utils/joival');
 
-module.exports.getCart = async function(req, res) {
+module.exports.myCart = async function(req, res) {
     try {
-        const page = req.query.page || 1;
-        const perPage = 4;
-        let skip = (page - 1) * perPage;
-        const result = await user.find({ _id: req.user._id })
+        const result = await userModel.find({ _id: req.user._id })
             .populate({ path: 'cart.productDetail' })
-            .limit(perPage)
-            .skip(skip);
         res.json({
             code: 0,
             message: "Get your cart successfully",
-            data: result,
-            totalPage: Math.ceil(result.length / perPage)
+            data: result
         })
     } catch (error) {
         res.json({
@@ -29,14 +22,15 @@ module.exports.getCart = async function(req, res) {
 }
 module.exports.changeInCart = async function(req, res) {
     try {
-        const joiVal = joiFunction(req.body, checkUpdateProduct);
-        if (joiVal) throw joiVal;
+        const validateError = validateInput(req.body, checkUpdateProduct);
+        if (validateError) throw validateError;
+
         let action = req.body.action;
-        if (action !== 'add' && action !== 'update' && action !== 'remove') throw { message: 'Wrong action' };
-        const addProduct = await product.findOne({ _id: req.body.productId });
-        if (!addProduct) throw { message: 'Product doesn\'t exist' };
-        if (req.user._id === addProduct.owner) throw { message: 'Can\'t buy your product' };
-        let existProduct = req.user.cart.find((product) => product.productDetail.toString() == addProduct._id);
+        const product = await productModel.findOne({ _id: req.body.productId });
+
+        if (!product) throw { message: 'Product doesn\'t exist' };
+        if (req.user._id === product.owner) throw { message: 'Can\'t buy your product' };
+        let existProduct = req.user.cart.find((item) => item.productDetail.equals(product._id));
         if (action === 'add') {
             if (existProduct) {
                 existProduct.amount += parseInt(req.body.amount);
@@ -50,12 +44,12 @@ module.exports.changeInCart = async function(req, res) {
             await req.user.save();
         } else if (action === 'remove') {
             if (!existProduct) throw { message: "Product doesn\'t exists in your cart" };
-            await user.findOneAndUpdate({ _id: req.user._id }, { $pull: { cart: { productDetail: req.body.productId } } });
+            await userModel.findOneAndUpdate({ _id: req.user._id }, { $pull: { cart: { productDetail: req.body.productId } } });
         }
-        const data = await user.findOne({ _id: req.user._id }).populate('cart.productDetail').select({ password: 0 });
+        const data = await userModel.findOne({ _id: req.user._id }).populate('cart.productDetail').select({ password: 0 });
         res.json({
             code: 0,
-            message: 'Add product to cart successfully',
+            message: 'Change product in cart successfully',
             data: data
         })
     } catch (error) {
@@ -69,22 +63,22 @@ module.exports.changeInCart = async function(req, res) {
 
 module.exports.changePickProduct = async function(req, res) {
     try {
-        const joiVal = joiFunction(req.body, checkPickProduct);
-        if (joiVal) throw joiVal;
-        if (JSON.stringify(req.user.cart) === JSON.stringify([])) throw { message: "Your cart is empty" };
-        const productsArray = req.body;
-        const productsInCart = req.user.cart;
-        if (req.body.length > req.user.cart.length) throw { message: "Amount of product in cart is less than your request" };
-        for (item of req.body) {
-            if (!productsInCart.find(pro => pro.productDetail.toString() === item.productId.toString()))
+        const validateError = validateInput(req.body, checkPickProduct);
+        if (validateError) throw validateError;
+        if (req.user.cart.length === 0) throw { message: "Your cart is empty" };
+        const inputProductList = req.body;
+        const cart = req.user.cart;
+        if (inputProductList.length > cart.length) throw { message: "Amount of product in cart is less than your request" };
+        for (item of inputProductList) {
+            let productInCart = cart.find(pro => pro.productDetail.equals(item.productId));
+            if (productInCart) {
+                productInCart.pick = item.pick;
+            } else {
                 throw { message: `${JSON.stringify(item)} is not in your cart` };
-        }
-        for (pro of productsArray) {
-            let productInCart = productsInCart.find(item => item.productDetail.toString() == pro.productId.toString());
-            productInCart.pick = pro.pick;
+            }
         }
         await req.user.save();
-        const result = await user.findOne({ _id: req.user._id }).populate('cart.productDetail');
+        const result = await userModel.findOne({ _id: req.user._id }).populate('cart.productDetail');
         res.json({
             code: 0,
             message: 'Pick or unpick product successfully',

@@ -1,6 +1,6 @@
 const Joi = require('joi');
 
-const joiFunction = function(body, schema) {
+const validateInput = function(body, schema) {
     const joiVal = Joi.validate(body, schema);
     if (joiVal.error) {
         return {
@@ -14,4 +14,4 @@ const joiFunction = function(body, schema) {
 }
 
 
-module.exports.joiFunction = joiFunction;
+module.exports.validateInput = validateInput;

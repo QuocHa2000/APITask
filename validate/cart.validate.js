@@ -9,7 +9,7 @@ const checkPickProducts = Joi.array().items(checkPickProduct);
 const checkUpdateProduct = Joi.object().keys({
     amount: Joi.number().min(1).required(),
     productId: Joi.objectId().required(),
-    action: Joi.string().required().min(3).max(6)
+    action: Joi.string().required().min(3).max(6).valid(['add', 'remove', 'update'])
 })
 
 module.exports.checkUpdateProduct = checkUpdateProduct;

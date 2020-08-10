@@ -1,32 +1,40 @@
 const mongoose = require('mongoose');
-
-const orderSchema = mongoose.Schema({
+const productSchema = mongoose.Schema({
     product: {
         type: Object,
         required: true
     },
+    amount: {
+        type: Number,
+        required: true
+    }
+}, { toJSON: { virtuals: true } })
+const orderSchema = mongoose.Schema({
+    products: [productSchema],
     buyer: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'users',
         required: true
     },
-    owner: {
+    seller: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
         ref: 'users'
-    },
-    amount: {
-        type: Number,
-        required: true
     },
     status: {
         type: String,
         required: true
     }
 }, { toJSON: { virtuals: true } });
-
+productSchema.virtual('realPrice').get(function() {
+    return this.product.sellPrice * this.amount;
+})
 orderSchema.virtual('totalPrice').get(function() {
-    return this.product.price * (100 - this.product.discount) / 100 * this.amount;
+    let totalPrice = 0;
+    for (product of this.products) {
+        totalPrice += product.realPrice;
+    }
+    return totalPrice;
 })
 
 const orderDetail = mongoose.model('orderDetail', orderSchema, 'orderDetail');

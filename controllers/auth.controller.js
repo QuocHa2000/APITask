@@ -7,12 +7,12 @@ const { sendEmail } = require('../utils/sendmail');
 const { checkRegisterSchema } = require('../validate/register.validate');
 const { checkLoginSchema } = require('../validate/login.validate');
 const { checkVerifyCodeSchema, checkVerifyEmailSchema } = require('../validate/verify.validate');
-const { joiFunction } = require('../utils/joival');
+const { validateInput } = require('../utils/joival');
 
 module.exports.register = async function(req, res, next) {
     try {
-        const joiVal = joiFunction(req.body, checkRegisterSchema);
-        if (joiVal) throw joiVal;
+        const validateError = validateInput(req.body, checkRegisterSchema);
+        if (validateError) throw validateError;
         const salt = await bcrypt.genSalt(10);
         const hashPassword = await bcrypt.hash(req.body.password, salt);
         const existEmail = await user.findOne({ email: req.body.email });
@@ -60,8 +60,8 @@ module.exports.register = async function(req, res, next) {
 
 module.exports.login = async function(req, res, next) {
     try {
-        const joiVal = joiFunction(req.body, checkLoginSchema);
-        if (joiVal) throw joiVal;
+        const validateError = validateInput(req.body, checkLoginSchema);
+        if (validateError) throw validateError;
         const userEmail = await user.findOne({ email: req.body.email }).populate('cart.productDetail');
         if (!userEmail) {
             throw { message: "Username or password is incorrect" };
@@ -131,8 +131,8 @@ module.exports.verify = async function(req, res, next) {
 
 module.exports.resendMail = async function(req, res) {
     try {
-        const joiVal = joiFunction(req.body, checkVerifyEmailSchema);
-        if (joiVal) throw joiVal;
+        const validateError = validateInput(req.body, checkVerifyEmailSchema);
+        if (validateError) throw validateError;
         const codeValue = Math.floor(Math.random() * 899999) + 100000;
 
         await register.create({
