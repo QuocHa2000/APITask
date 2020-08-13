@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const cartSchema = mongoose.Schema({
-    productDetail: {
+    productId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'product',
         required: true
@@ -14,7 +14,7 @@ const cartSchema = mongoose.Schema({
         type: Boolean,
         required: true
     }
-}, { toJSON: { virtuals: true } })
+}, { toJSON: { virtuals: true }, toObject: { virtuals: true } })
 
 const userSchema = mongoose.Schema({
     email: {
@@ -48,16 +48,16 @@ const userSchema = mongoose.Schema({
     avatar: {
         type: String
     }
-}, { toJSON: { virtuals: true } });
+}, { toJSON: { virtuals: true }, toObject: { virtuals: true } });
 
-cartSchema.virtual('totalPrice').get(function() {
-    return this.amount * this.productDetail.sellPrice;
+cartSchema.virtual('totalPriceOfProduct').get(function() {
+    return this.amount * this.productId.salePrice;
 })
-userSchema.virtual('total').get(function() {
+userSchema.virtual('totalCost').get(function() {
     let totalMoney = 0;
     if (!this.cart) return;
     for (product of this.cart) {
-        if (product.pick === true) totalMoney += product.totalPrice;
+        if (product.pick === true) totalMoney += product.totalPriceOfProduct;
     }
     return totalMoney;
 })

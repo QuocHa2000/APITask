@@ -1,7 +1,7 @@
 module.exports.orderStatus = {
-    confirm: 'confirming',
-    pickup: 'picking-up',
-    finish: 'completed',
-    cancel: 'canceled',
-    shipping: 'shipping'
+    confirm: 'confirm',
+    pickup: 'pick-up',
+    finish: 'finish',
+    cancel: 'cancel',
+    shipping: 'ship'
 }

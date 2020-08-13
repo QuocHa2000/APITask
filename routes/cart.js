@@ -2,9 +2,9 @@ const express = require('express');
 const route = express.Router();
 const controller = require('../controllers/cart.controller');
 
-route.post('/changeincart', controller.changeInCart);
-route.get('/', controller.myCart);
-route.post('/changepickproduct', controller.changePickProduct);
+route.post('/changeproductsincart', controller.changeProductsInCart);
+route.get('/', controller.getMyCart);
+route.post('/changepickproduct', controller.pickProduct);
 
 
 module.exports = route;

@@ -1,13 +1,13 @@
-const user = require('../models/user.model');
+const userModel = require('../models/user.model');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Joi = require('joi');
-const register = require('../models/register.model');
+const registerModel = require('../models/register.model');
 const { sendEmail } = require('../utils/sendmail');
 const { checkRegisterSchema } = require('../validate/register.validate');
 const { checkLoginSchema } = require('../validate/login.validate');
 const { checkVerifyCodeSchema, checkVerifyEmailSchema } = require('../validate/verify.validate');
-const { validateInput } = require('../utils/joival');
+const { validateInput } = require('../utils/validateinput');
 
 module.exports.register = async function(req, res, next) {
     try {
@@ -15,13 +15,13 @@ module.exports.register = async function(req, res, next) {
         if (validateError) throw validateError;
         const salt = await bcrypt.genSalt(10);
         const hashPassword = await bcrypt.hash(req.body.password, salt);
-        const existEmail = await user.findOne({ email: req.body.email });
+        const existEmail = await userModel.findOne({ email: req.body.email });
         if (existEmail) {
             throw { message: "Email existed" }
         }
         const codeValue = Math.floor(Math.random() * (999999 - 100000)) + 100000;
 
-        await register.create({
+        await registerModel.create({
             "createdAt": new Date(),
             "email": req.body.email,
             "authCode": codeValue
@@ -35,7 +35,7 @@ module.exports.register = async function(req, res, next) {
         // send mail with defined transport object
         sendEmail(from, to, subject, req.params.email, codeValue, link);
 
-        const newuser = await user.insertMany([{
+        const newuser = await userModel.insertMany([{
             email: req.body.email,
             password: hashPassword,
             role: req.body.role,
@@ -62,7 +62,7 @@ module.exports.login = async function(req, res, next) {
     try {
         const validateError = validateInput(req.body, checkLoginSchema);
         if (validateError) throw validateError;
-        const userEmail = await user.findOne({ email: req.body.email }).populate('cart.productDetail');
+        const userEmail = await userModel.findOne({ email: req.body.email }).populate('cart.productId');
         if (!userEmail) {
             throw { message: "Username or password is incorrect" };
         }
@@ -106,14 +106,14 @@ module.exports.verify = async function(req, res, next) {
         const { codeValue } = req.body;
         const userEmail = req.params.email;
 
-        const authUser = await register.findOne({ email: userEmail, authCode: codeValue });
-        const registerUser = await user.findOne({ email: userEmail });
+        const authUser = await registerModel.findOne({ email: userEmail, authCode: codeValue });
+        const registerUser = await userModel.findOne({ email: userEmail });
 
         if (registerUser && !authUser) {
             throw { message: "Your code expired, Please choose send code again to verify" };
         }
         if (authUser && registerUser) {
-            const result = await user.findOneAndUpdate({ email: userEmail }, { active: true });
+            const result = await userModel.findOneAndUpdate({ email: userEmail }, { active: true });
             res.json({
                 code: 0,
                 data: result,
@@ -135,7 +135,7 @@ module.exports.resendMail = async function(req, res) {
         if (validateError) throw validateError;
         const codeValue = Math.floor(Math.random() * 899999) + 100000;
 
-        await register.create({
+        await registerModel.create({
             "createdAt": new Date(),
             "email": req.params.email,
             "authCode": codeValue

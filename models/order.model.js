@@ -7,8 +7,11 @@ const productSchema = mongoose.Schema({
     amount: {
         type: Number,
         required: true
+    },
+    totalPriceOfProduct: {
+        type: Number
     }
-}, { toJSON: { virtuals: true } })
+}, { toJSON: { virtuals: true }, toObject: { virtuals: true } })
 const orderSchema = mongoose.Schema({
     products: [productSchema],
     buyer: {
@@ -25,16 +28,13 @@ const orderSchema = mongoose.Schema({
         type: String,
         required: true
     }
-}, { toJSON: { virtuals: true } });
-productSchema.virtual('realPrice').get(function() {
-    return this.product.sellPrice * this.amount;
-})
-orderSchema.virtual('totalPrice').get(function() {
-    let totalPrice = 0;
+}, { toJSON: { virtuals: true }, toObject: { virtuals: true } });
+orderSchema.virtual('totalCost').get(function() {
+    let totalCost = 0;
     for (product of this.products) {
-        totalPrice += product.realPrice;
+        totalCost += product.totalPriceOfProduct;
     }
-    return totalPrice;
+    return totalCost;
 })
 
 const orderDetail = mongoose.model('orderDetail', orderSchema, 'orderDetail');

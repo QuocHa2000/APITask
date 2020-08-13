@@ -13,4 +13,4 @@ const checkUpdateProduct = Joi.object().keys({
 })
 
 module.exports.checkUpdateProduct = checkUpdateProduct;
-module.exports.checkPickProduct = checkPickProducts;
+module.exports.checkPickProducts = checkPickProducts;

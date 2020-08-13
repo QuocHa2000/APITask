@@ -1,14 +1,11 @@
-const user = require('../models/user.model');
-const jwt = require('jsonwebtoken');
-const Joi = require('joi');
+const userModel = require('../models/user.model');
 const { checkUpdateInfo, checkPassword } = require('../validate/info.validate');
 const bcrypt = require('bcryptjs');
-const fs = require('fs');
-const { joiFunction } = require('../utils/joival');
+const { validateInput } = require('../utils/validateinput');
 
 module.exports.getMyInfo = async function(req, res) {
     try {
-        const result = await user.find({ email: req.user.email });
+        const result = await userModel.find({ email: req.user.email });
         res.json({
             code: 0,
             data: result,
@@ -24,11 +21,11 @@ module.exports.getMyInfo = async function(req, res) {
 }
 module.exports.updateInfo = async function(req, res) {
     try {
-        const joiVal = joiFunction(req.body, checkUpdateInfo);
-        if (joiVal) throw joiVal;
+        const validateError = validateInput(req.body, checkUpdateInfo);
+        if (validateError) throw validateError;
         // Not allow user change role become admin
         if (req.body.role == 'admin') throw { message: "You are not allowed to change your role become admin" };
-        const result = await user.findOneAndUpdate({ email: req.user.email }, { $set: req.body });
+        const result = await userModel.findOneAndUpdate({ email: req.user.email }, { $set: req.body });
         res.json({
             code: 0,
             message: "Update successfully",
@@ -46,15 +43,15 @@ module.exports.updateInfo = async function(req, res) {
 module.exports.changePassword = async function(req, res) {
     try {
         const { oldPassword, newPassword } = req.body;
-        const joiVal = joiFunction(req.body, checkPassword);
-        if (joiVal) throw joiVal;
-        const getUser = await user.findOne({ email: req.user.email });
+        const validateError = validateInput(req.body, checkPassword);
+        if (validateError) throw validateError;
+        const getUser = await userModel.findOne({ email: req.user.email });
         const valPassword = await bcrypt.compare(oldPassword, getUser.password);
 
         if (!valPassword) throw { message: "your old password is incorrect" };
         const salt = await bcrypt.genSalt(10);
         const hashPassword = await bcrypt.hash(newPassword, salt);
-        const result = await user.findOneAndUpdate({ email: req.user.email }, { $set: { password: hashPassword } });
+        const result = await userModel.findOneAndUpdate({ email: req.user.email }, { $set: { password: hashPassword } });
         res.json({
             code: 0,
             message: "Change password successfully",

@@ -4,8 +4,9 @@ const controller = require('../controllers/purchase.controller');
 const authEnterprise = require('../middleware/enterprise.middleware');
 const loginMiddleware = require('../middleware/checkLogin.middleware');
 
-route.post('/userchangeorderstatus', loginMiddleware, controller.sellerChangeOrderStatus);
+route.post('/sellerchangeorderstatus', loginMiddleware, controller.sellerChangeOrderStatus);
+route.post('/buyerchangeorderstatus', loginMiddleware, controller.buyerChangeOrderStatus);
 route.get('/purchaseproduct', loginMiddleware, controller.purchaseProduct);
-route.post('/myorder', loginMiddleware, controller.myOrder)
+route.post('/myorder', loginMiddleware, controller.getMyOrder)
 
 module.exports = route;

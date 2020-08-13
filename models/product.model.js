@@ -27,7 +27,7 @@ const productSchema = mongoose.Schema({
         type: Number,
         required: true
     },
-    amount: {
+    quantity: {
         type: Number,
         required: true
     },
@@ -38,9 +38,9 @@ const productSchema = mongoose.Schema({
     productImage: [{
         type: String
     }]
-}, { toJSON: { virtuals: true } });
+}, { toJSON: { virtuals: true }, toObject: { virtuals: true } });
 
-productSchema.virtual('sellPrice').get(function() {
+productSchema.virtual('salePrice').get(function() {
     return (this.price * (100 - this.discount) / 100);
 })
 const Product = mongoose.model('product', productSchema, 'product');
