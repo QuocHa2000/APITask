@@ -1,12 +1,12 @@
 const userModel = require('../models/user.model');
 const productModel = require('../models/product.model');
-const { checkPickProducts, checkUpdateProduct } = require('../validate/cart.validate')
+const { checkPickProducts, checkUpdateProduct } = require('../validate/cart.validate');
 const { validateInput } = require('../utils/validateinput');
 
 module.exports.getMyCart = async function(req, res) {
     try {
         const result = await userModel
-            .find({ _id: req.user._id })
+            .findById(req.user._id)
             .populate({ path: 'cart.productId' })
         res.json({
             code: 0,
@@ -43,7 +43,7 @@ module.exports.changeProductsInCart = async function(req, res) {
                 if (parseInt(req.body.amount) > product.quantity) {
                     throw { message: 'Amount of adding product is greater than amount of available products' };
                 }
-                req.user.cart.push({ productId: req.body.productId, amount: parseInt(req.body.amount), pick: true });
+                req.user.cart.push({ productId: req.body.productId, amount: req.body.amount, pick: true });
             }
             await req.user.save();
         } else if (action === 'update') {
@@ -53,12 +53,15 @@ module.exports.changeProductsInCart = async function(req, res) {
             if (parseInt(req.body.amount) > product.quantity) {
                 throw { message: 'Amount of adding product is greater than amount of available products' }
             }
-            productInCart.amount = parseInt(req.body.amount);
+            productInCart.amount = req.body.amount;
             await req.user.save();
         } else {
-            await userModel.findOneAndUpdate({ _id: req.user._id }, { $pull: { cart: { productId: req.body.productId } } });
+            await userModel.updateOne({ _id: req.user._id }, { $pull: { cart: { productId: req.body.productId } } });
         }
-        const result = await userModel.findOne({ _id: req.user._id }).populate('cart.productId').select({ password: 0 });
+        const result = await userModel
+            .findById(req.user._id)
+            .populate('cart.productId')
+            .select({ password: 0 });
         res.json({
             code: 0,
             message: 'Change product in cart successfully',
@@ -80,13 +83,13 @@ module.exports.pickProduct = async function(req, res) {
         const inputProducts = req.body;
         const cart = req.user.cart;
 
-        if (cart.length === 0) {
-            throw { message: "Your cart is empty" };
+        if (cart.length === 0 || inputProducts.length === 0) {
+            throw { message: "Your cart or your request is empty" };
         }
         if (inputProducts.length > cart.length) {
             throw { message: "Amount of product in cart is less than your request" };
         }
-        for (item of inputProducts) {
+        for (const item of inputProducts) {
             let productInCart = cart.find(product => product.productId.equals(item.productId));
             if (!productInCart) {
                 throw { message: `Product ${item.productId} is not in your cart` };
@@ -94,7 +97,9 @@ module.exports.pickProduct = async function(req, res) {
             productInCart.pick = item.pick;
         }
         await req.user.save();
-        const result = await userModel.findOne({ _id: req.user._id }).populate('cart.productId');
+        const result = await userModel
+            .findById(req.user._id)
+            .populate('cart.productId')
         res.json({
             code: 0,
             message: 'Pick or unpick product successfully',

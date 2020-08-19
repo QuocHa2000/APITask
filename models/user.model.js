@@ -21,7 +21,10 @@ const userSchema = mongoose.Schema({
         type: String,
         index: true,
         unique: true,
-        required: true
+        required: true,
+        set: function(v) {
+            return v.toLowerCase();
+        }
     },
     password: {
         type: String,
@@ -48,7 +51,7 @@ const userSchema = mongoose.Schema({
     avatar: {
         type: String
     }
-}, { toJSON: { virtuals: true }, toObject: { virtuals: true } });
+}, { toJSON: { virtuals: true }, toObject: { virtuals: true }, id: false });
 
 cartSchema.virtual('totalPriceOfProduct').get(function() {
     return this.amount * this.productId.salePrice;

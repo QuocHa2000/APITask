@@ -35,7 +35,7 @@ module.exports.register = async function(req, res, next) {
         // send mail with defined transport object
         sendEmail(from, to, subject, req.params.email, codeValue, link);
 
-        const newuser = await userModel.insertMany([{
+        const newuser = await userModel.create({
             email: req.body.email,
             password: hashPassword,
             role: req.body.role,
@@ -43,7 +43,7 @@ module.exports.register = async function(req, res, next) {
             phone: req.body.phone,
             active: false,
             status: 'active'
-        }]);
+        });
         res.json({
             code: 0,
             data: newuser,
@@ -95,14 +95,11 @@ module.exports.login = async function(req, res, next) {
 module.exports.verify = async function(req, res, next) {
     // Kích hoạt tài khoản đúng email
     try {
-        const joiCodeVal = Joi.validate(req.body, checkVerifyCodeSchema);
-        if (joiCodeVal.error) {
-            throw { message: joiCodeVal.error.message }
-        }
-        const joiEmailVal = Joi.validate(req.params, checkVerifyEmailSchema);
-        if (joiEmailVal.error) {
-            throw { message: joiEmailVal.error.message }
-        }
+        const validateCodeError = validateInput(req.body, checkVerifyCodeSchema);
+        if (validateCodeError) throw validateError;
+        const validateEmailError = validateInput(req.params, checkVerifyEmailSchema);
+        if (validateEmailError) throw validateError;
+
         const { codeValue } = req.body;
         const userEmail = req.params.email;
 
@@ -113,7 +110,7 @@ module.exports.verify = async function(req, res, next) {
             throw { message: "Your code expired, Please choose send code again to verify" };
         }
         if (authUser && registerUser) {
-            const result = await userModel.findOneAndUpdate({ email: userEmail }, { active: true });
+            const result = await userModel.findOneAndUpdate({ email: userEmail }, { active: true }, { new: true });
             res.json({
                 code: 0,
                 data: result,

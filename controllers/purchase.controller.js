@@ -2,11 +2,13 @@ const userModel = require('../models/user.model');
 const productModel = require('../models/product.model');
 const orderModel = require('../models/order.model');
 const { validateInput } = require('../utils/validateinput');
-const { checkGetOrder, sellerChangeStatusOfOrder, userChangeStatusOfOrder } = require('../validate/order.validate');
+const { checkGetOrder, sellerChangeStatusOfOrder, buyerChangeStatusOfOrder } = require('../validate/order.validate');
 const { db } = require('../models/order.model');
 const { orderStatus } = require('../utils/orderstatus');
 
 module.exports.purchaseProduct = async function(req, res) {
+    const session = await db.startSession();
+    session.startTransaction();
     try {
         const cart = req.user.cart;
         if (cart.length === 0) {
@@ -14,14 +16,14 @@ module.exports.purchaseProduct = async function(req, res) {
         }
         let listOfOrders = [];
 
-        for (productInCart of cart) {
-            if (productInCart.pick == true) {
-                const product = await productModel.findOne({ _id: productInCart.productId });
+        for (const productInCart of cart) {
+            if (productInCart.pick === true) {
+                const product = await productModel.findById(productInCart.productId);
                 if (!product) {
-                    throw { message: `Product : ${productInCart.productId} doesn\'t exists, please remove it in your cart and repurchase` }
+                    throw { message: `Product : ${productInCart.productId} doesn\'t exists, please remove it in your cart and repurchase` };
                 };
                 if (product.quantity < productInCart.amount) {
-                    throw { message: 'Amount of product you purchase is greater than amount of available products' };
+                    throw { message: 'Amount of product you purchase is greater than the number of available products' };
                 };
                 let sameSellerOrder = listOfOrders.find(item => product.owner.equals(item.seller));
                 const addedProduct = {
@@ -36,54 +38,56 @@ module.exports.purchaseProduct = async function(req, res) {
                         products: [addedProduct],
                         buyer: req.user._id,
                         seller: product.owner,
-                        status: orderStatus.confirm
+                        status: orderStatus.pending
                     })
                 }
             }
         }
 
-        const result = await orderModel.insertMany(listOfOrders);
-        for (item of listOfOrders) {
-            for (detail of item.products) {
-                await userModel.findOneAndUpdate({ _id: req.user._id }, { $pull: { cart: { productId: detail.product._id } } });
-                await productModel.findOneAndUpdate({ _id: detail.product._id }, { $inc: { quantity: -(detail.amount), sold: detail.amount } });
+        for (const item of listOfOrders) {
+            for (const detail of item.products) {
+                await userModel.updateOne({ _id: req.user._id }, { $pull: { cart: { productId: detail.product._id } } }, { session: session });
+                await productModel.updateOne({ _id: detail.product._id }, { $inc: { quantity: -(detail.amount), sold: detail.amount } }, { session: session });
             }
         }
+        const result = await orderModel.insertMany(listOfOrders);
+        await session.commitTransaction();
         res.json({
             code: 0,
             message: "Purchase product successfully",
             data: result
         })
     } catch (error) {
+        await session.abortTransaction();
         res.json({
             code: 1,
             message: error.message,
             data: "Error"
         });
     }
+    session.endSession();
 }
 module.exports.sellerChangeOrderStatus = async function(req, res) {
+    const session = await db.startSession();
+    session.startTransaction();
     try {
-        const session = await db.startSession();
-        session.startTransaction();
-
         const validateError = validateInput(req.body, sellerChangeStatusOfOrder);
         if (validateError) {
             throw validateError;
         }
         let queryConditions = {};
         const status = req.body.status;
-        if (status === orderStatus.pickup) {
+        if (status === orderStatus.shipping) {
             queryConditions = {
                 _id: req.body.orderId,
                 seller: req.user._id,
-                status: orderStatus.pickup
+                status: orderStatus.ready
             }
         } else {
             queryConditions = {
                 _id: req.body.orderId,
                 seller: req.user._id,
-                status: orderStatus.confirm
+                status: orderStatus.pending
             }
         }
         const order = await orderModel.findOne(queryConditions);
@@ -91,48 +95,45 @@ module.exports.sellerChangeOrderStatus = async function(req, res) {
             throw { message: 'Order doesn\'t exists' };
         }
 
-        if (status === orderStatus.confirm) {
-            await orderModel.findOneAndUpdate({ _id: req.body.orderId }, { status: orderStatus.pickup });
-        } else if (status === orderStatus.pickup) {
-            await orderModel.findOneAndUpdate({ _id: req.body.orderId }, { status: orderStatus.shipping })
+        if (status === orderStatus.ready) {
+            await orderModel.updateOne({ _id: req.body.orderId }, { status: orderStatus.ready });
+        } else if (status === orderStatus.shipping) {
+            await orderModel.updateOne({ _id: req.body.orderId }, { status: orderStatus.shipping });
         } else {
-            let changeStatus = await orderModel.findOneAndUpdate({ _id: req.body.orderId }, { status: orderStatus.cancel }, { session: session });
-            for (detail of order.products) {
-                let changeQuantity = await productModel.findOneAndUpdate({ _id: detail.product._id }, { $inc: { quantity: (order.amount), sold: -(order.amount) } }, { session: session });
-                await session.commitTransaction();
-                if (changeStatus.modifiedCount == 0 || changeQuantity.modifiedCount == 0) {
-                    await session.abortTransaction();
-                }
+            await orderModel.updateOne({ _id: req.body.orderId }, { status: orderStatus.canceled }, { session: session });
+            for (const detail of order.products) {
+                await productModel.updateOne({ _id: detail.product._id }, { $inc: { quantity: (order.amount), sold: -(order.amount) } }, { session: session });
             }
         }
-        session.endSession();
-        const result = await orderModel.findOne({ _id: req.body.orderId });
+        const result = await orderModel.findById(req.body.orderId);
+        await session.commitTransaction();
         res.json({
             code: 0,
             message: 'Change order status successfully',
             data: result
         })
     } catch (error) {
+        await session.abortTransaction();
         res.json({
             code: 1,
             message: error.message,
             data: 'Error'
         })
     }
+    session.endSession();
 }
 
 module.exports.buyerChangeOrderStatus = async function(req, res) {
+    const session = await db.startSession();
+    session.startTransaction();
     try {
-        const session = await db.startSession();
-        session.startTransaction();
-
-        const validateError = validateInput(req.body, userChangeStatusOfOrder);
+        const validateError = validateInput(req.body, buyerChangeStatusOfOrder);
         if (validateError) {
             throw validateError;
         }
 
         let queryConditions;
-        if (req.body.status === orderStatus.finish) {
+        if (req.body.status === orderStatus.finished) {
             queryConditions = {
                 _id: req.body.orderId,
                 buyer: req.user._id,
@@ -142,7 +143,7 @@ module.exports.buyerChangeOrderStatus = async function(req, res) {
             queryConditions = {
                 _id: req.body.orderId,
                 buyer: req.user._id,
-                status: orderStatus.confirm
+                status: orderStatus.pending
             }
         }
 
@@ -152,33 +153,31 @@ module.exports.buyerChangeOrderStatus = async function(req, res) {
         }
 
         const status = req.body.status;
-        if (status === orderStatus.finish) {
-            await orderModel.findOneAndUpdate({ _id: req.body.orderId }, { status: orderStatus.finish });
+        if (status === orderStatus.finished) {
+            await orderModel.updateOne({ _id: req.body.orderId }, { status: orderStatus.finished });
         } else {
-            let changeStatus = await orderModel.findOneAndUpdate({ _id: req.body.orderId }, { status: orderStatus.cancel }, { session: session });
-            for (detail of order.products) {
-                let changeQuantity = await productModel.findOneAndUpdate({ _id: detail.product._id }, { $inc: { quantity: (detail.amount), sold: -(detail.amount) } }, { session: session });
-                await session.commitTransaction();
-                if (changeStatus.modifiedCount == 0 || changeQuantity.modifiedCount == 0) {
-                    await session.abortTransaction();
-                }
+            await orderModel.updateOne({ _id: req.body.orderId }, { status: orderStatus.canceled }, { session: session });
+            for (const detail of order.products) {
+                await productModel.updateOne({ _id: detail.product._id }, { $inc: { quantity: (detail.amount), sold: -(detail.amount) } }, { session: session });
             }
         }
-        const result = await orderModel.findOne({ _id: req.body.orderId });
-        session.endSession();
-
+        const result = await orderModel.findById(req.body.orderId);
+        await session.commitTransaction();
         res.json({
             code: 0,
             message: 'Change order status successfully',
             data: result
         })
     } catch (error) {
+        await session.abortTransaction();
         res.json({
             code: 1,
             message: error.message,
             data: 'Error'
         })
     }
+    session.endSession();
+
 }
 
 module.exports.getMyOrder = async function(req, res) {
@@ -193,7 +192,7 @@ module.exports.getMyOrder = async function(req, res) {
         let skip = (page - 1) * perPage;
 
         const role = req.body.role;
-        let queryConditions = {};
+        let queryConditions;
 
         if (req.body.status === 'all') {
             queryConditions = {

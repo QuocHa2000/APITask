@@ -56,7 +56,7 @@ module.exports.productDetail = async function(req, res) {
     try {
         const validateError = validateInput(req.params, checkProductDetail);
         if (validateError) throw validateError;
-        const result = await productModel.findOne({ _id: req.params.id });
+        const result = await productModel.findById(req.params.id);
         res.json({
             code: 0,
             message: "Get productModel detail successfully",
@@ -92,14 +92,9 @@ module.exports.getMyProduct = async function(req, res) {
 
 module.exports.updateProduct = async function(req, res) {
     try {
-        const validateError = Joi.validate(req.body, checkUpdateProductSchema);
-        if (validateError.error) {
-            throw {
-                code: 1,
-                message: validateError.error.message,
-                data: "Invalid"
-            }
-        }
+        const validateError = validateInput(req.body, checkUpdateProductSchema);
+        if (validateError) throw validateError;
+
         let productImage = [];
         for (file of req.files) {
             productImage.push(file.path.replace(/\\/g, '/'));

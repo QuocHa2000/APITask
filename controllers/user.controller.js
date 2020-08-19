@@ -7,7 +7,7 @@ module.exports.findUser = async function(req, res) {
         const page = req.query.page || 1;
         const perPage = 8;
         let skip = (page - 1) * perPage;
-        const foundUser = await userModel.find({ email: new RegExp(req.query.userEmail) }).limit(perPage).skip(skip);
+        const foundUser = await userModel.findOne({ email: new RegExp(req.query.userEmail) }).limit(perPage).skip(skip);
         res.json({
             code: 0,
             message: "Find userModel successfully",
@@ -50,8 +50,8 @@ module.exports.changeUserStatus = async function(req, res) {
         let productStatus;
         if (req.body.status === 'active') productStatus = 'active';
         else productStatus = 'hide';
-        const result = await userModel.findOneAndUpdate({ _id: req.body.id }, { $set: { status: req.body.status } });
-        await product.updateMany({ owner: req.body.id }, { $set: { status: productStatus } });
+        const result = await userModel.findOneAndUpdate({ _id: req.body.id }, { status: req.body.status }, { new: true });
+        await product.updateMany({ owner: req.body.id }, { status: productStatus });
         res.json({
             code: 0,
             message: "Change status successfully",
