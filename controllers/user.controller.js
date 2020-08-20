@@ -7,7 +7,7 @@ module.exports.findUser = async function(req, res) {
         const page = req.query.page || 1;
         const perPage = 8;
         let skip = (page - 1) * perPage;
-        const foundUser = await userModel.findOne({ email: new RegExp(req.query.userEmail) }).limit(perPage).skip(skip);
+        const foundUser = await userModel.findOne({ $text: { $search: req.query.userEmail } }).limit(perPage).skip(skip);
         res.json({
             code: 0,
             message: "Find userModel successfully",

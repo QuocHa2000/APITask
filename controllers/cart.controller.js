@@ -35,13 +35,13 @@ module.exports.changeProductsInCart = async function(req, res) {
         if (action === 'add') {
             if (productInCart) {
                 if (productInCart.amount + parseInt(req.body.amount) > product.quantity) {
-                    throw { message: 'Amount of adding product is greater than amount of available products' };
+                    throw { message: 'Amount of adding product is greater than the number of available products' };
                 }
                 productInCart.amount += parseInt(req.body.amount);
                 productInCart.pick = true;
             } else {
                 if (parseInt(req.body.amount) > product.quantity) {
-                    throw { message: 'Amount of adding product is greater than amount of available products' };
+                    throw { message: 'Amount of adding product is greater than the number of available products' };
                 }
                 req.user.cart.push({ productId: req.body.productId, amount: req.body.amount, pick: true });
             }

@@ -19,7 +19,7 @@ const cartSchema = mongoose.Schema({
 const userSchema = mongoose.Schema({
     email: {
         type: String,
-        index: true,
+        index: { 'text': true },
         unique: true,
         required: true,
         set: function(v) {
@@ -30,10 +30,14 @@ const userSchema = mongoose.Schema({
         type: String,
         required: true
     },
-    role: String,
-    name: {
+    role: {
         type: String,
         required: true
+    },
+    name: {
+        type: String,
+        required: true,
+        index: { 'text': true }
     },
     phone: {
         type: String,
