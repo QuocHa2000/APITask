@@ -17,12 +17,14 @@ const orderSchema = mongoose.Schema({
     buyer: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'users',
-        required: true
+        required: true,
+        index: true
     },
     seller: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
-        ref: 'users'
+        ref: 'users',
+        index: true
     },
     status: {
         type: String,

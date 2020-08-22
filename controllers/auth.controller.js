@@ -1,7 +1,6 @@
 const userModel = require('../models/user.model');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const Joi = require('joi');
 const registerModel = require('../models/register.model');
 const { sendEmail } = require('../utils/sendmail');
 const { checkRegisterSchema } = require('../validate/register.validate');
@@ -19,7 +18,7 @@ module.exports.register = async function(req, res, next) {
         if (existEmail) {
             throw { message: "Email existed" }
         }
-        const codeValue = Math.floor(Math.random() * (999999 - 100000)) + 100000;
+        const codeValue = Math.floor(Math.random() * (899999)) + 100000;
 
         await registerModel.create({
             "createdAt": new Date(),

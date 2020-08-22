@@ -57,3 +57,5 @@ app.use('/purchase', loginMiddleware, purchaseRoute);
 app.listen(port, function(req, res, next) {
     console.log("App is listening on port " + port);
 })
+
+module.exports = app;

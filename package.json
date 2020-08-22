@@ -3,11 +3,14 @@
     "version": "0.0.0",
     "private": true,
     "scripts": {
-        "start": "nodemon --inspect app.js"
+        "start": "nodemon --inspect app.js",
+        "test": "mocha test/order.test --timeout 10000"
     },
     "dependencies": {
         "@hapi/joi": "^17.1.1",
         "bcryptjs": "^2.4.3",
+        "chai": "^4.2.0",
+        "chai-http": "^4.3.0",
         "cookie-parser": "~1.4.4",
         "debug": "~2.6.9",
         "dotenv": "^8.2.0",
@@ -30,6 +33,7 @@
         "passport-jwt": "^4.0.0"
     },
     "devDependencies": {
+        "mocha": "^8.1.1",
         "nodemon": "^2.0.4"
     }
 }

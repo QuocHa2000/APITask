@@ -6,7 +6,7 @@ const checkRegisterSchema = Joi.object().keys({
     phone: Joi.number().required().min(99999999).max(1000000000000),
     name: Joi.string().required().min(1).max(50),
     company: Joi.string(),
-    role: Joi.string()
+    role: Joi.string().valid(['user', 'enterprise'])
 })
 
 module.exports.checkRegisterSchema = checkRegisterSchema;
