@@ -1,7 +1,7 @@
 module.exports.orderStatus = {
-    pending: 'pending',
-    ready: 'ready',
-    shipping: 'shipping',
-    finished: 'finished',
-    canceled: 'canceled'
+    PENDING: 'pending',
+    READY: 'ready',
+    SHIPPING: 'shipping',
+    FINISHED: 'finished',
+    CANCELED: 'canceled'
 }

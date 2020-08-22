@@ -2,6 +2,7 @@ const userModel = require('../models/user.model');
 const productModel = require('../models/product.model');
 const { checkPickProducts, checkUpdateProduct } = require('../validate/cart.validate');
 const { validateInput } = require('../utils/validateinput');
+const errorMessage = require('../utils/errormessage');
 
 module.exports.getMyCart = async function(req, res) {
     try {
@@ -29,29 +30,29 @@ module.exports.changeProductsInCart = async function(req, res) {
         const action = req.body.action;
         const product = await productModel.findOne({ _id: req.body.productId, owner: { $ne: req.user._id } });
         if (!product) {
-            throw { message: 'Product doesn\'t exist' };
+            throw { message: errorMessage.PRODUCT_NOT_EXIST };
         }
         let productInCart = req.user.cart.find(item => item.productId.equals(product._id));
         if (action === 'add') {
             if (productInCart) {
                 if (productInCart.amount + parseInt(req.body.amount) > product.quantity) {
-                    throw { message: 'Amount of adding product is greater than the number of available products' };
+                    throw { message: errorMessage.TOO_MUCH_PRODUCT };
                 }
                 productInCart.amount += parseInt(req.body.amount);
                 productInCart.pick = true;
             } else {
                 if (parseInt(req.body.amount) > product.quantity) {
-                    throw { message: 'Amount of adding product is greater than the number of available products' };
+                    throw { message: errorMessage.TOO_MUCH_PRODUCT };
                 }
                 req.user.cart.push({ productId: req.body.productId, amount: req.body.amount, pick: true });
             }
             await req.user.save();
         } else if (action === 'update') {
             if (!productInCart) {
-                throw { message: "Product doesn\'t exists in your cart" };
+                throw { message: errorMessage.PRODUCT_NOT_IN_CART };
             }
             if (parseInt(req.body.amount) > product.quantity) {
-                throw { message: 'Amount of adding product is greater than amount of available products' }
+                throw { message: errorMessage.TOO_MUCH_PRODUCT }
             }
             productInCart.amount = req.body.amount;
             await req.user.save();
@@ -84,7 +85,7 @@ module.exports.pickProduct = async function(req, res) {
         const cart = req.user.cart;
 
         if (cart.length === 0 || inputProducts.length === 0) {
-            throw { message: "Your cart or your request is empty" };
+            throw { message: errorMessage.CART_EMPTY };
         }
         if (inputProducts.length > cart.length) {
             throw { message: "Amount of product in cart is less than your request" };

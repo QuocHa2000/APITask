@@ -5,6 +5,7 @@ const { validateInput } = require('../utils/validateinput');
 const { checkGetOrder, sellerChangeStatusOfOrder, buyerChangeStatusOfOrder } = require('../validate/order.validate');
 const { db } = require('../models/order.model');
 const { orderStatus } = require('../utils/orderstatus');
+const errorMessage = require('../utils/errormessage');
 
 module.exports.purchaseProduct = async function(req, res) {
     const session = await db.startSession();
@@ -23,7 +24,7 @@ module.exports.purchaseProduct = async function(req, res) {
                     throw { message: `Product : ${productInCart.productId} doesn\'t exists, please remove it in your cart and repurchase` };
                 };
                 if (product.quantity < productInCart.amount) {
-                    throw { message: 'Amount of product you purchase is greater than the number of available products' };
+                    throw { message: errorMessage.TOO_MUCH_PRODUCT };
                 };
                 let sameSellerOrder = listOfOrders.find(item => product.owner.equals(item.seller));
                 const addedProduct = {
@@ -38,7 +39,7 @@ module.exports.purchaseProduct = async function(req, res) {
                         products: [addedProduct],
                         buyer: req.user._id,
                         seller: product.owner,
-                        status: orderStatus.pending
+                        status: orderStatus.PENDING
                     })
                 }
             }
@@ -78,30 +79,30 @@ module.exports.sellerChangeOrderStatus = async function(req, res) {
         }
         let queryConditions = {};
         const status = req.body.status;
-        if (status === orderStatus.shipping) {
+        if (status === orderStatus.SHIPPING) {
             queryConditions = {
                 _id: req.body.orderId,
                 seller: req.user._id,
-                status: orderStatus.ready
+                status: orderStatus.READY
             }
         } else {
             queryConditions = {
                 _id: req.body.orderId,
                 seller: req.user._id,
-                status: orderStatus.pending
+                status: orderStatus.PENDING
             }
         }
         const order = await orderModel.findOne(queryConditions);
         if (!order) {
-            throw { message: 'Order doesn\'t exists' };
+            throw { message: errorMessage.ORDER_NOT_EXIST };
         }
         let result;
-        if (status === orderStatus.ready) {
-            result = await orderModel.findByIdAndUpdate(req.body.orderId, { status: orderStatus.ready }, { new: true });
-        } else if (status === orderStatus.shipping) {
-            result = await orderModel.findByIdAndUpdate(req.body.orderId, { status: orderStatus.shipping }, { new: true });
+        if (status === orderStatus.READY) {
+            result = await orderModel.findByIdAndUpdate(req.body.orderId, { status: orderStatus.READY }, { new: true });
+        } else if (status === orderStatus.SHIPPING) {
+            result = await orderModel.findByIdAndUpdate(req.body.orderId, { status: orderStatus.SHIPPING }, { new: true });
         } else {
-            result = await orderModel.findByIdAndUpdate(req.body.orderId, { status: orderStatus.canceled }, { session: session, new: true });
+            result = await orderModel.findByIdAndUpdate(req.body.orderId, { status: orderStatus.CANCELED }, { session: session, new: true });
             for (const detail of order.products) {
                 await productModel.updateOne({ _id: detail.product._id }, { $inc: { quantity: (detail.amount), sold: -(detail.amount) } }, { session: session });
             }
@@ -135,30 +136,30 @@ module.exports.buyerChangeOrderStatus = async function(req, res) {
 
         let queryConditions;
         const status = req.body.status;
-        if (status === orderStatus.finished) {
+        if (status === orderStatus.FINISHED) {
             queryConditions = {
                 _id: req.body.orderId,
                 buyer: req.user._id,
-                status: orderStatus.shipping
+                status: orderStatus.SHIPPING
             }
         } else {
             queryConditions = {
                 _id: req.body.orderId,
                 buyer: req.user._id,
-                status: orderStatus.pending
+                status: orderStatus.PENDING
             }
         }
 
         const order = await orderModel.findOne(queryConditions);
         if (!order) {
-            throw { message: 'Order doesn\'t exists' };
+            throw { message: errorMessage.ORDER_NOT_EXIST };
         }
 
         let result;
-        if (status === orderStatus.finished) {
-            result = await orderModel.findByIdAndUpdate(req.body.orderId, { status: orderStatus.finished }, { new: true });
+        if (status === orderStatus.FINISHED) {
+            result = await orderModel.findByIdAndUpdate(req.body.orderId, { status: orderStatus.FINISHED }, { new: true });
         } else {
-            result = await orderModel.findByIdAndUpdate(req.body.orderId, { status: orderStatus.canceled }, { session: session, new: true });
+            result = await orderModel.findByIdAndUpdate(req.body.orderId, { status: orderStatus.CANCELED }, { session: session, new: true });
             for (const detail of order.products) {
                 await productModel.updateOne({ _id: detail.product._id }, { $inc: { quantity: (detail.amount), sold: -(detail.amount) } }, { session: session });
             }
