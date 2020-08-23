@@ -3,7 +3,8 @@
     "version": "0.0.0",
     "private": true,
     "scripts": {
-        "start": "nodemon --inspect app.js",
+        "dev": "nodemon --inspect app.js",
+        "start": "node app.js",
         "test": "mocha test/order.test --timeout 10000"
     },
     "dependencies": {
