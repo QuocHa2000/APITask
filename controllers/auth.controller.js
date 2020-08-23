@@ -92,7 +92,6 @@ module.exports.login = async function(req, res, next) {
 }
 
 module.exports.verify = async function(req, res, next) {
-    // Kích hoạt tài khoản đúng email
     try {
         const validateCodeError = validateInput(req.body, checkVerifyCodeSchema);
         if (validateCodeError) throw validateError;
