@@ -30,9 +30,9 @@ module.exports.register = async function(req, res, next) {
         const to = req.body.email;
         const subject = "Hello";
         const link = `http://localhost:4000/verify/resendmail/${req.params.email}`;
-        // const html = `Please click this link to verify your email with code ${codeValue} <a href='http://localhost:4000/verify/${req.params.email}'>http://localhost:4000/verify/${req.body.email}</a>`;
-        // send mail with defined transport object
-        sendEmail(from, to, subject, req.params.email, codeValue, link);
+
+        const sendMailInput = { from, to, subject, name: req.params.email, code: codeValue, link };
+        sendEmail(sendMailInput);
 
         const newuser = await userModel.create({
             email: req.body.email,
@@ -141,9 +141,9 @@ module.exports.resendMail = async function(req, res) {
         const to = req.params.email;
         const subject = "Hello";
         const link = `http://localhost:4000/verify/resendmail/${req.params.email}`;
-        // const html = `Please click this link to verify your email with code ${codeValue} <a href='http://localhost:4000/verify/${req.params.email}'>http://localhost:4000/verify/${req.body.email}</a>`;
-        // send mail with defined transport object
-        sendEmail(from, to, subject, req.params.email, codeValue, link);
+
+        const sendMailInput = { from, to, subject, name: req.params.email, code: codeValue, link };
+        sendEmail(sendMailInput);
         res.json({
             code: 0,
             message: " Resend mail successfully"

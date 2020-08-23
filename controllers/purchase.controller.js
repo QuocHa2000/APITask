@@ -13,7 +13,7 @@ module.exports.purchaseProduct = async function(req, res) {
     try {
         const cart = req.user.cart;
         if (cart.length === 0) {
-            throw { message: 'Your cart is empty' };
+            throw { message: errorMessage.CART_EMPTY };
         }
         let listOfOrders = [];
 
