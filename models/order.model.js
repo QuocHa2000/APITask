@@ -29,15 +29,12 @@ const orderSchema = mongoose.Schema({
     status: {
         type: String,
         required: true
+    },
+    totalCost: {
+        type: Number,
+        required: true
     }
-}, { toJSON: { virtuals: true }, toObject: { virtuals: true } });
-orderSchema.virtual('totalCost').get(function() {
-    let totalCost = 0;
-    for (product of this.products) {
-        totalCost += product.totalPriceOfProduct;
-    }
-    return totalCost;
-})
+});
 
 const orderDetail = mongoose.model('orderDetail', orderSchema, 'orderDetail');
 module.exports = orderDetail;

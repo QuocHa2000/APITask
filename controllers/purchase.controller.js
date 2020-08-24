@@ -34,12 +34,14 @@ module.exports.purchaseProduct = async function(req, res) {
                 }
                 if (sameSellerOrder) {
                     sameSellerOrder.products.push(addedProduct);
+                    sameSellerOrder.totalCost += addedProduct.totalPriceOfProduct;
                 } else {
                     listOfOrders.push({
                         products: [addedProduct],
                         buyer: req.user._id,
                         seller: product.owner,
-                        status: orderStatus.PENDING
+                        status: orderStatus.PENDING,
+                        totalCost: addedProduct.totalPriceOfProduct
                     })
                 }
             }

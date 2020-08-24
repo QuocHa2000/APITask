@@ -83,8 +83,9 @@ module.exports.changeProductsInCart = async function(req, res) {
 module.exports.pickProduct = async function(req, res) {
     try {
         const validateError = validateInput(req.body, checkPickProducts);
-        if (validateError) throw validateError;
-
+        if (validateError) {
+            throw validateError;
+        }
         const inputProducts = req.body;
         const cart = req.user.cart;
 
