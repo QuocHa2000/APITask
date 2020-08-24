@@ -44,7 +44,11 @@ module.exports.changeProductsInCart = async function(req, res) {
                 if (parseInt(req.body.amount) > product.quantity) {
                     throw { message: errorMessage.TOO_MUCH_PRODUCT };
                 }
-                req.user.cart.push({ productId: req.body.productId, amount: req.body.amount, pick: true });
+                req.user.cart.push({
+                    productId: req.body.productId,
+                    amount: req.body.amount,
+                    pick: true
+                });
             }
             await req.user.save();
         } else if (action === 'update') {
@@ -88,7 +92,7 @@ module.exports.pickProduct = async function(req, res) {
             throw { message: errorMessage.CART_EMPTY };
         }
         if (inputProducts.length > cart.length) {
-            throw { message: "Amount of product in cart is less than your request" };
+            throw { message: errorMessage.PRODUCT_IN_CART_LESS_THAN_REQUEST };
         }
         for (const item of inputProducts) {
             let productInCart = cart.find(product => product.productId.equals(item.productId));
