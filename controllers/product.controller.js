@@ -99,7 +99,7 @@ module.exports.updateProduct = async function(req, res) {
         for (file of req.files) {
             productImage.push(file.path.replace(/\\/g, '/'));
         }
-        const result = await productModel.findOneAndUpdate({ _id: req.body._id, owner: req.user._id }, { $set: req.body, productImage });
+        const result = await productModel.findOneAndUpdate({ _id: req.body._id, owner: req.user._id }, { $set: req.body, productImage }, { new: true });
         res.json({
             code: 0,
             message: " Update product successfully",

@@ -16,6 +16,10 @@ module.exports.productStatisticForAdmin = async function(req, res) {
             { $unwind: "$products" },
             { $group: { _id: null, total: { $sum: '$products.amount' } } }
         ])
+        let availableProducts = await productModel.aggregate([
+            { $match: { status: { $ne: 'blocked' } } },
+            { $group: { _id: null, total: { $sum: "$quantity" } } }
+        ])
         const empty = [{ total: 0 }];
         if (boughtProducts.length === 0) {
             boughtProducts = empty;
@@ -23,12 +27,16 @@ module.exports.productStatisticForAdmin = async function(req, res) {
         if (pendingProducts.length === 0) {
             pendingProducts = empty;
         }
+        if (availableProducts.length === 0) {
+            availableProducts = empty;
+        }
 
         const result = {
             amountOfProducts: products.length,
             amountOfSellers: sellers.length,
             amountOfBoughtProducts: boughtProducts[0].total,
-            amountOfPendingProducts: pendingProducts[0].total
+            amountOfPendingProducts: pendingProducts[0].total,
+            quantityOfAvailableProducts: availableProducts[0].total
         }
         res.json({
             code: 0,
@@ -53,14 +61,14 @@ module.exports.memberStatisticForAdmin = async function(req, res) {
         const enterprises = await userModel.aggregate([
             { $match: { role: "enterprise" } }
         ])
-        const unactivatedUser = await userModel.aggregate([
+        const inactivatedUsers = await userModel.aggregate([
             { $match: { $or: [{ active: false }, { status: { $ne: 'active' } }] } }
         ])
         const result = {
             amountOfMembers: members.length,
             amountOfUsers: users.length,
             amountOfEnterprises: enterprises.length,
-            amountOfUnactivatedUser: unactivatedUser.length
+            amountOfInactivatedUsers: inactivatedUsers.length
         }
         res.json({
             code: 0,
@@ -85,14 +93,14 @@ module.exports.revenueStatisticForAdmin = async function(req, res) {
             { $match: { status: { $nin: ['finished', 'canceled'] } } },
             { $group: { _id: null, total: { $sum: '$totalCost' } } }
         ])
-        let enterpriseHasHighestRevenue = await orderModel.aggregate([
+        let enterpriseRevenueRanking = await orderModel.aggregate([
             { $match: { status: 'finished' } },
             { $group: { _id: '$seller', totalRevenue: { $sum: '$totalCost' } } },
             { $sort: { totalRevenue: -1 } }
         ])
         const empty = [{ total: 0 }];
-        if (enterpriseHasHighestRevenue.length === 0) {
-            enterpriseHasHighestRevenue = [{ _id: '', totalRevenue: 0 }]
+        if (enterpriseRevenueRanking.length === 0) {
+            enterpriseRevenueRanking = [{ _id: null, totalRevenue: 0 }]
         }
         if (paidRevenue.length === 0) {
             paidRevenue = empty;
@@ -104,7 +112,8 @@ module.exports.revenueStatisticForAdmin = async function(req, res) {
             paidRevenue: paidRevenue[0].total,
             pendingRevenue: pendingRevenue[0].total,
             totalRevenue: paidRevenue[0].total + pendingRevenue[0].total,
-            enterpriseHasHighestRevenue: enterpriseHasHighestRevenue[0]
+            enterpriseHasHighestRevenue: enterpriseRevenueRanking[0],
+            enterpriseHasLowestRevenue: enterpriseRevenueRanking[enterpriseRevenueRanking.length - 1]
         };
         res.json({
             code: 0,
@@ -170,7 +179,7 @@ module.exports.productStatisticForEnterprise = async function(req, res) {
             { $group: { _id: null, total: { $sum: '$products.amount' } } }
         ])
         let pendingProducts = await orderModel.aggregate([
-            { $match: { status: { $nin: ['finished', 'canceled'] } } },
+            { $match: { status: { $nin: ['finished', 'canceled'] }, seller: req.user._id } },
             { $unwind: "$products" },
             { $group: { _id: null, total: { $sum: '$products.amount' } } }
         ])
