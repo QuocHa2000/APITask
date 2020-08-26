@@ -4,70 +4,71 @@ const cartSchema = mongoose.Schema({
     productId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'product',
-        required: true
+        required: true,
     },
     amount: {
         type: Number,
-        required: true
+        required: true,
     },
     pick: {
         type: Boolean,
-        required: true
-    }
-}, { toJSON: { virtuals: true }, toObject: { virtuals: true } })
+        required: true,
+    },
+}, { toJSON: { virtuals: true }, toObject: { virtuals: true } });
 
 const userSchema = mongoose.Schema({
     email: {
         type: String,
-        index: { 'text': true },
+        index: { text: true },
         unique: true,
         required: true,
+
         set: function(v) {
             return v.toLowerCase();
-        }
+        },
     },
     password: {
         type: String,
-        required: true
+        required: true,
     },
     role: {
         type: String,
-        required: true
+        required: true,
     },
     name: {
         type: String,
         required: true,
-        index: { 'text': true }
+        index: { text: true },
     },
     phone: {
         type: String,
-        required: true
+        required: true,
     },
     active: {
         type: Boolean,
-        required: true
+        required: true,
     },
     status: {
         type: String,
-        required: true
+        required: true,
     },
     cart: { default: [], type: [cartSchema] },
     avatar: {
-        type: String
-    }
+        type: String,
+    },
 }, { toJSON: { virtuals: true }, toObject: { virtuals: true }, id: false });
 
 cartSchema.virtual('totalPriceOfProduct').get(function() {
     return this.amount * this.productId.salePrice;
-})
+});
 userSchema.virtual('totalCost').get(function() {
     let totalMoney = 0;
     if (!this.cart) return;
-    for (product of this.cart) {
+    for (let product of this.cart) {
         if (product.pick === true) totalMoney += product.totalPriceOfProduct;
     }
     return totalMoney;
-})
+});
 
 const User = mongoose.model('users', userSchema, 'users');
 

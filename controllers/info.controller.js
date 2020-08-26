@@ -1,7 +1,7 @@
 const userModel = require('../models/user.model');
 const { checkUpdateInfo, checkPassword } = require('../validate/info.validate');
 const bcrypt = require('bcryptjs');
-const { validateInput } = require('../utils/validateinput');
+const { validateInput } = require('../utils/validate-input');
 
 module.exports.getMyInfo = async function(req, res) {
     try {
@@ -9,37 +9,39 @@ module.exports.getMyInfo = async function(req, res) {
         res.json({
             code: 0,
             data: result,
-            message: "Get info successfully"
-        })
+            message: 'Get info successfully',
+        });
     } catch (error) {
         res.json({
             code: 1,
             message: error.message,
-            data: "Error"
+            data: 'Error',
         });
     }
-}
+};
 module.exports.updateInfo = async function(req, res) {
     try {
         const validateError = validateInput(req.body, checkUpdateInfo);
         if (validateError) throw validateError;
         // Not allow user change role become admin
-        if (req.body.role == 'admin') throw { message: "You are not allowed to change your role become admin" };
+        if (req.body.role == 'admin')
+            throw {
+                message: 'You are not allowed to change your role become admin',
+            };
         const result = await userModel.findOneAndUpdate({ email: req.user.email }, { $set: req.body }, { new: true });
         res.json({
             code: 0,
-            message: "Update successfully",
-            data: result
-        })
-
+            message: 'Update successfully',
+            data: result,
+        });
     } catch (error) {
         res.json({
             code: 1,
             message: error.message,
-            data: "Error"
+            data: 'Error',
         });
     }
-}
+};
 module.exports.changePassword = async function(req, res) {
     try {
         const { oldPassword, newPassword } = req.body;
@@ -48,39 +50,38 @@ module.exports.changePassword = async function(req, res) {
         const getUser = await userModel.findOne({ email: req.user.email });
         const valPassword = await bcrypt.compare(oldPassword, getUser.password);
 
-        if (!valPassword) throw { message: "your old password is incorrect" };
+        if (!valPassword) throw { message: 'your old password is incorrect' };
         const salt = await bcrypt.genSalt(10);
         const hashPassword = await bcrypt.hash(newPassword, salt);
         const result = await userModel.findOneAndUpdate({ email: req.user.email }, { password: hashPassword }, { new: true });
         res.json({
             code: 0,
-            message: "Change password successfully",
-            data: result
-        })
-
+            message: 'Change password successfully',
+            data: result,
+        });
     } catch (error) {
         res.json({
             code: 1,
             message: error.message,
-            data: "Error"
+            data: 'Error',
         });
     }
-}
+};
 module.exports.uploadAvatar = async function(req, res) {
     try {
-        req.user.avatar = req.file.path.replace(/\\/g, "/");
+        req.user.avatar = req.file.path.replace(/\\/g, '/');
 
         const data = await req.user.save();
         res.json({
             code: 0,
             message: 'Upload Avatar successfully',
-            data: data
-        })
+            data: data,
+        });
     } catch (error) {
         res.json({
             code: 1,
             message: error.message,
-            data: 'Error'
-        })
+            data: 'Error',
+        });
     }
-}
+};

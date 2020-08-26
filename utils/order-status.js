@@ -3,5 +3,5 @@ module.exports.orderStatus = {
     READY: 'ready',
     SHIPPING: 'shipping',
     FINISHED: 'finished',
-    CANCELED: 'canceled'
-}
+    CANCELED: 'canceled',
+};

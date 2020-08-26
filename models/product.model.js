@@ -8,46 +8,45 @@ const productSchema = mongoose.Schema({
     },
     name: {
         type: String,
-        index: { 'text': true },
-        required: true
+        index: { text: true },
+        required: true,
     },
     price: {
         type: Number,
         required: true,
-        min: 0
+        min: 0,
     },
     description: {
-        type: String,
-        index: { 'text': true }
+        type: String
     },
     status: {
         type: String,
-        required: true
+        required: true,
     },
     sold: {
         type: Number,
         required: true,
-        min: 0
+        min: 0,
     },
     quantity: {
         type: Number,
         required: true,
-        min: 0
+        min: 0,
     },
     discount: {
         type: Number,
         required: true,
         min: 0,
-        max: 100
+        max: 100,
     },
     productImage: [{
-        type: String
-    }]
+        type: String,
+    }, ],
 }, { toJSON: { virtuals: true }, toObject: { virtuals: true } });
 
 productSchema.virtual('salePrice').get(function() {
-    return (this.price * (100 - this.discount) / 100);
-})
+    return (this.price * (100 - this.discount)) / 100;
+});
 const Product = mongoose.model('product', productSchema, 'product');
 
 module.exports = Product;

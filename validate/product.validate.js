@@ -6,11 +6,11 @@ const checkPostProduct = Joi.object().keys({
     price: Joi.number().required(),
     amount: Joi.number().min(1).max(1000000).required(),
     status: Joi.string().min(1).max(10).required().valid(['active', 'blocked']),
-    discount: Joi.number().min(0).max(100).required()
-})
+    discount: Joi.number().min(0).max(100).required(),
+});
 const checkProductDetail = Joi.object().keys({
-    id: Joi.objectId()
-})
+    id: Joi.objectId(),
+});
 
 const checkUpdateProductSchema = Joi.object().keys({
     _id: Joi.objectId().required(),
@@ -18,8 +18,8 @@ const checkUpdateProductSchema = Joi.object().keys({
     price: Joi.number().required(),
     amount: Joi.number().min(1).max(1000000).required(),
     status: Joi.string().min(1).max(10).required().valid(['active', 'blocked']),
-    discount: Joi.number().min(0).max(100).required()
-})
+    discount: Joi.number().min(0).max(100).required(),
+});
 
 module.exports.checkPostProduct = checkPostProduct;
 module.exports.checkProductDetail = checkProductDetail;

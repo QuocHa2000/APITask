@@ -17,16 +17,16 @@ describe('Orders', () => {
                     res.body.should.be.a('object');
                     // res.body.length.should.be.eq(3);
                     done();
-                })
-        })
+                });
+        });
 
-        it("It should not purchase product", (done) => {
+        it('It should not purchase product', (done) => {
             chai.request(app)
                 .get('/purchase/purchaseproduct')
                 .end((err, res) => {
                     res.body.data.should.be.eq('Error');
                     done();
-                })
-        })
-    })
-})
+                });
+        });
+    });
+});

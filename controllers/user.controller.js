@@ -1,47 +1,53 @@
 const userModel = require('../models/user.model');
 const product = require('../models/product.model');
 const { changeUserStatus } = require('../validate/user.validate');
-const { validateInput } = require('../utils/validateinput');
+const { validateInput } = require('../utils/validate-input');
 module.exports.findUser = async function(req, res) {
     try {
         const page = req.query.page || 1;
         const perPage = 8;
         let skip = (page - 1) * perPage;
-        const foundUser = await userModel.findOne({ $text: { $search: req.query.userEmail } }).limit(perPage).skip(skip);
+        const foundUser = await userModel
+            .findOne({ $text: { $search: req.query.userEmail } })
+            .limit(perPage)
+            .skip(skip);
         res.json({
             code: 0,
-            message: "Find userModel successfully",
+            message: 'Find userModel successfully',
             data: foundUser,
-            totalPage: Math.ceil(result.length / perPage)
-        })
+            totalPage: Math.ceil(foundUser.length / perPage),
+        });
     } catch (error) {
         res.json({
             code: 1,
             message: error.message,
-            data: "Error"
+            data: 'Error',
         });
     }
-}
+};
 module.exports.getUsers = async function(req, res) {
     try {
         const page = req.query.page || 1;
         const perPage = 8;
         let skip = (page - 1) * perPage;
-        const result = await userModel.find({}, { password: 0 }).limit(perPage).skip(skip);
+        const result = await userModel
+            .find({}, { password: 0 })
+            .limit(perPage)
+            .skip(skip);
         res.json({
             code: 0,
             data: result,
-            message: "Get all user successfully",
-            totalPage: Math.ceil(result.length / perPage)
-        })
+            message: 'Get all user successfully',
+            totalPage: Math.ceil(result.length / perPage),
+        });
     } catch (error) {
         res.json({
             code: 1,
             message: error.message,
-            data: "Error"
+            data: 'Error',
         });
     }
-}
+};
 
 module.exports.changeUserStatus = async function(req, res) {
     try {
@@ -54,14 +60,14 @@ module.exports.changeUserStatus = async function(req, res) {
         await product.updateMany({ owner: req.body.id }, { status: productStatus });
         res.json({
             code: 0,
-            message: "Change status successfully",
-            data: result
-        })
+            message: 'Change status successfully',
+            data: result,
+        });
     } catch (err) {
         res.json({
             code: 1,
-            message: error.message,
-            data: "Error"
+            message: err.message,
+            data: 'Error',
         });
     }
-}
+};

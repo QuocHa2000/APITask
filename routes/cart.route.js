@@ -6,5 +6,4 @@ route.post('/changeproductsincart', controller.changeProductsInCart);
 route.get('/', controller.getMyCart);
 route.post('/changepickproduct', controller.pickProduct);
 
-
 module.exports = route;

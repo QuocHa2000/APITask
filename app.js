@@ -11,22 +11,22 @@ mongoose.connect(process.env.MONGO_URL, {
     useUnifiedTopology: true,
     useCreateIndex: true,
     useFindAndModify: false,
-    autoIndex: false
+    autoIndex: false,
 });
 
 mongoose.connection
-    .once("open", () => console.log("Connected"))
-    .on("error", error => { console.log("Error" + error) })
+    .once('open', () => console.log('Connected'))
+    .on('error', (error) => {
+        console.log('Error' + error);
+    });
 
-const registerRoute = require('./routes/register');
-const loginRoute = require('./routes/login');
-const productRoute = require('./routes/product');
-const verifyRoute = require('./routes/verify');
-const userRoute = require('./routes/user');
-const infoRoute = require('./routes/info');
-const cartRoute = require('./routes/cart');
-const purchaseRoute = require('./routes/purchase');
-const statisticRoute = require('./routes/statistic');
+const productRoute = require('./routes/product.route');
+const userRoute = require('./routes/user.route');
+const infoRoute = require('./routes/info.route');
+const cartRoute = require('./routes/cart.route');
+const purchaseRoute = require('./routes/purchase.route');
+const statisticRoute = require('./routes/statistic.route');
+const authRoute = require('./routes/auth.route');
 
 const adminMiddleware = require('./middleware/checkadmin.middleware');
 const loginMiddleware = require('./middleware/checkLogin.middleware');
@@ -44,10 +44,8 @@ app.use(cookieParser());
 // app.use(express.static(path.join(__dirname, 'public')));
 app.use('/upload', express.static('public'));
 
-app.use('/register', registerRoute);
-app.use('/login', loginRoute);
+app.use('/auth', authRoute);
 app.use('/product', productRoute);
-app.use('/verify', verifyRoute);
 app.use('/user', adminMiddleware, userRoute);
 app.use('/info', loginMiddleware, infoRoute);
 app.use('/cart', loginMiddleware, cartRoute);
@@ -55,9 +53,23 @@ app.use('/purchase', loginMiddleware, purchaseRoute);
 app.use('/statistic', statisticRoute);
 
 // catch 404 and forward to error handler
+app.use(function(req, res, next) {
+    next(createError(404));
+});
 
-app.listen(port, function(req, res, next) {
-    console.log("App is listening on port " + port);
-})
+// error handler
+app.use(function(err, req, res, next) {
+    // set locals, only providing error in development
+    res.locals.message = err.message;
+    res.locals.error = req.app.get('env') === 'development' ? err : {};
+
+    // render the error page
+    res.status(err.status || 500);
+    res.render('error');
+});
+
+app.listen(port, function() {
+    console.log('App is listening on port ' + port);
+});
 
 module.exports = app;
