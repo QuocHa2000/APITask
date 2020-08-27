@@ -1,16 +1,12 @@
-const jwt = require('jsonwebtoken');
-const user = require('../models/user.model');
+const { authToken } = require('../utils/auth-token');
 
-module.exports = async function (req, res, next) {
+module.exports = async function(req, res, next) {
     try {
-        const authHeader = req.headers['authorization'];
-        if (!authHeader) throw { message: 'You are not login' };
-        const token = authHeader.split(' ')[1];
-        if (!token) throw { message: 'You are not login' };
-        const loginUser = await jwt.verify(token, process.env.secret_key);
-        const foundUser = await user.findOne({ email: loginUser.email });
-        if (foundUser.role != 'admin')
-            throw { message: 'You are not allowed to access' };
+        const foundUser = await authToken(req.headers);
+        if (foundUser.role != 'admin') {
+            throw new Error('You are not allowed to access');
+        }
+        req.user = foundUser;
         next();
     } catch (error) {
         res.json({

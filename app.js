@@ -20,7 +20,7 @@ mongoose.connection
         console.log('Error' + error);
     });
 
-const productRoute = require('./routes/product.route');
+const productRoute = require('./api/product/product.route');
 const userRoute = require('./routes/user.route');
 const infoRoute = require('./routes/info.route');
 const cartRoute = require('./routes/cart.route');

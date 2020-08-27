@@ -11,6 +11,7 @@ module.exports = {
             "experimentalObjectRestSpread": true
         }
     },
+    "parser": "babel-eslint",
     'plugins': ['prettier'],
     rules: {
         'prettier/prettier': 'error',

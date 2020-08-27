@@ -1,7 +1,7 @@
-const userModel = require('../models/user.model');
+const userService = require('../user/user.service');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const registerModel = require('../models/register.model');
+const authService = require('./auth.service');
 const { sendEmail } = require('../utils/send-mail');
 const { checkRegisterSchema } = require('../validate/register.validate');
 const { checkLoginSchema } = require('../validate/login.validate');
@@ -17,13 +17,13 @@ module.exports.register = async function(req, res) {
         if (validateError) throw validateError;
         const salt = await bcrypt.genSalt(10);
         const hashPassword = await bcrypt.hash(req.body.password, salt);
-        const existEmail = await userModel.findOne({ email: req.body.email });
+        const existEmail = await userService.getOne({ email: req.body.email });
         if (existEmail) {
             throw new Error('Email existed');
         }
         const codeValue = Math.floor(Math.random() * 899999) + 100000;
-
-        await registerModel.create({
+        aut
+        await authService.create({
             createdAt: new Date(),
             email: req.body.email,
             authCode: codeValue,
@@ -43,19 +43,14 @@ module.exports.register = async function(req, res) {
             link,
         };
         sendEmail(sendMailInput);
-
-        const newuser = await userModel.create({
-            email: req.body.email,
-            password: hashPassword,
-            role: req.body.role,
-            name: req.body.name,
-            phone: req.body.phone,
-            active: false,
-            status: 'active',
-        });
+        const newUser = req.body;
+        newUser.password = hashPassword;
+        newUser.active = false;
+        newUser.status = 'active';
+        const result = await userService.create(newUser);
         res.json({
             code: 0,
-            data: newuser,
+            data: result,
             message: 'Register success',
         });
     } catch (error) {
@@ -71,9 +66,10 @@ module.exports.login = async function(req, res) {
     try {
         const validateError = validateInput(req.body, checkLoginSchema);
         if (validateError) throw validateError;
-        const userEmail = await userModel
-            .findOne({ email: req.body.email })
-            .populate('cart.productId');
+        const userEmail = await userService.populate({
+            query: { email: req.body.email },
+            populate: 'cart.productId'
+        })
         if (!userEmail) {
             throw new Error('Username or password is incorrect');
         }
@@ -124,11 +120,11 @@ module.exports.verify = async function(req, res) {
         const { codeValue } = req.body;
         const userEmail = req.params.email;
 
-        const authUser = await registerModel.findOne({
+        const authUser = await authService.getOne({
             email: userEmail,
             authCode: codeValue,
         });
-        const registerUser = await userModel.findOne({ email: userEmail });
+        const registerUser = await userService.getOne({ email: userEmail });
 
         if (registerUser && !authUser) {
             throw {
@@ -136,7 +132,7 @@ module.exports.verify = async function(req, res) {
             };
         }
         if (authUser && registerUser) {
-            const result = await userModel.findOneAndUpdate({ email: userEmail }, { active: true }, { new: true });
+            const result = await userService.updateOne({ email: userEmail }, { active: true });
             res.json({
                 code: 0,
                 data: result,
@@ -158,7 +154,7 @@ module.exports.resendMail = async function(req, res) {
         if (validateError) throw validateError;
         const codeValue = Math.floor(Math.random() * 899999) + 100000;
 
-        await registerModel.create({
+        await authService.create({
             createdAt: new Date(),
             email: req.params.email,
             authCode: codeValue,

@@ -23,7 +23,6 @@ module.exports.updateInfo = async function(req, res) {
     try {
         const validateError = validateInput(req.body, checkUpdateInfo);
         if (validateError) throw validateError;
-        // Not allow user change role become admin
         if (req.body.role == 'admin')
             throw {
                 message: 'You are not allowed to change your role become admin',
@@ -49,8 +48,7 @@ module.exports.changePassword = async function(req, res) {
         if (validateError) throw validateError;
         const getUser = await userModel.findOne({ email: req.user.email });
         const valPassword = await bcrypt.compare(oldPassword, getUser.password);
-
-        if (!valPassword) throw { message: 'your old password is incorrect' };
+        if (!valPassword) throw new Error('your old password is incorrect');
         const salt = await bcrypt.genSalt(10);
         const hashPassword = await bcrypt.hash(newPassword, salt);
         const result = await userModel.findOneAndUpdate({ email: req.user.email }, { password: hashPassword }, { new: true });

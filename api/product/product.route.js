@@ -1,7 +1,7 @@
 const express = require('express');
 const route = express.Router();
-const controller = require('../api/product/product.controller');
-const enterpriseVerify = require('../middleware/enterprise.middleware');
+const controller = require('./product.controller');
+const enterpriseVerify = require('../../middleware/enterprise.middleware');
 const multer = require('multer');
 const storage = multer.diskStorage({
     destination: 'public/upload/',
@@ -13,7 +13,7 @@ const fileFilter = function(req, file, cb) {
     if (
         file.mimetype === 'image/jpeg' ||
         file.mimetype === 'image/png' ||
-        file.mimetype === 'image/jpgs'
+        file.mimetype === 'image/jpg'
     ) {
         cb(null, true);
     } else {
@@ -35,7 +35,7 @@ route.post(
 );
 route.get('/productdetail/:id', controller.productDetail);
 route.get('/myproduct', enterpriseVerify, controller.getMyProduct);
-route.get('/disabledproduct', enterpriseVerify, controller.disabledProduct);
+route.get('/disabledproduct/:id', enterpriseVerify, controller.disabledProduct);
 route.get('/findproduct', controller.findProduct);
 route.post(
     '/updateproduct',
