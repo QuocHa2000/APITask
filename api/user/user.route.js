@@ -2,6 +2,8 @@ const express = require('express');
 const route = express.Router();
 const controller = require('./user.controller');
 const multer = require('multer');
+const checkAdmin = require('../../middleware/checkadmin.middleware');
+const checkLogin = require('../../middleware/checkLogin.middleware');
 const storage = multer.diskStorage({
     destination: 'public/upload/',
     filename: function(req, file, cb) {
@@ -43,8 +45,8 @@ cartRoute.post('/changeproductsincart', controller.changeProductsInCartForUser);
 cartRoute.get('/', controller.getCartForUser);
 cartRoute.post('/changepickproduct', controller.pickProductForUser);
 
-route.use('/admin', adminRoute);
-route.use('/me', userRoute);
-route.use('/cart', cartRoute);
+route.use('/admin', checkAdmin, adminRoute);
+route.use('/me', checkLogin, userRoute);
+route.use('/cart', checkLogin, cartRoute);
 
 module.exports = route;

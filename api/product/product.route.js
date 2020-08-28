@@ -7,7 +7,7 @@ const storage = multer.diskStorage({
     destination: 'public/upload/',
     filename: function(req, file, cb) {
         cb(null, file.fieldname + '-' + Date.now() + file.originalname);
-    },
+    }
 });
 const fileFilter = function(req, file, cb) {
     if (
@@ -35,7 +35,7 @@ route.post(
 );
 route.get('/productdetail/:id', controller.productDetail);
 route.get('/myproduct', enterpriseVerify, controller.getMyProduct);
-route.get('/disabledproduct/:id', enterpriseVerify, controller.disabledProduct);
+route.post('/changeproductstatus', enterpriseVerify, controller.changeProductStatus);
 route.get('/findproduct', controller.findProduct);
 route.post(
     '/updateproduct',

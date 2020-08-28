@@ -1,5 +1,3 @@
-const userModel = require('../models/user.model');
-const productModel = require('../models/product.model');
 const { validateInput } = require('../../utils/validate-input');
 const {
     checkGetOrder,
@@ -10,6 +8,8 @@ const { db } = require('./order.model');
 const { orderStatus } = require('../../utils/order-status');
 const errorMessage = require('../../utils/error-message');
 const orderService = require('./order.service');
+const productService = require('../product/product.service');
+const userService = require('../user/user.service');
 
 module.exports.purchaseProduct = async function(req, res) {
     const session = await db.startSession();
@@ -23,7 +23,7 @@ module.exports.purchaseProduct = async function(req, res) {
 
         for (const productInCart of cart) {
             if (productInCart.pick === true) {
-                const product = await orderService.getById(productInCart.productId);
+                const product = await productService.getById(productInCart.productId);
                 if (!product) {
                     throw new Error(`Product : ${productInCart.productId} doesn't exists, please remove it in your cart and repurchase`);
                 }
@@ -56,8 +56,8 @@ module.exports.purchaseProduct = async function(req, res) {
 
         for (const item of listOfOrders) {
             for (const detail of item.products) {
-                await userModel.updateById(req.user._id, { $pull: { cart: { productId: detail.product._id } } }, { session: session });
-                await productModel.updateById(detail.product._id, { $inc: { quantity: -detail.amount, sold: detail.amount } }, { session: session });
+                await userService.updateById(req.user._id, { $pull: { cart: { productId: detail.product._id } } }, { session: session });
+                await productService.updateById(detail.product._id, { $inc: { quantity: -detail.amount, sold: detail.amount } }, { session: session });
             }
         }
         const result = await orderService.insertMany(listOfOrders, {
@@ -124,7 +124,7 @@ module.exports.sellerChangeOrderStatus = async function(req, res) {
                 req.body.orderId, { status: orderStatus.CANCELED }, { session: session }
             );
             for (const detail of order.products) {
-                await productModel.updateOne({ _id: detail.product._id }, { $inc: { quantity: detail.amount, sold: -detail.amount } }, { session: session });
+                await productService.updateOne({ _id: detail.product._id }, { $inc: { quantity: detail.amount, sold: -detail.amount } }, { session: session });
             }
         }
         await session.commitTransaction();
@@ -185,7 +185,7 @@ module.exports.buyerChangeOrderStatus = async function(req, res) {
                 req.body.orderId, { status: orderStatus.CANCELED }, { session: session }
             );
             for (const detail of order.products) {
-                await productModel.updateOne({ _id: detail.product._id }, { $inc: { quantity: detail.amount, sold: -detail.amount } }, { session: session });
+                await productService.updateOne({ _id: detail.product._id }, { $inc: { quantity: detail.amount, sold: -detail.amount } }, { session: session });
             }
         }
         await session.commitTransaction();

@@ -35,13 +35,35 @@ module.exports.updateById = async function(id, data, option) {
     const order = await orderModel.findByIdAndUpdate(id, data, { new: true, ...option });
     return order;
 }
+module.exports.populateOne = async function({ query, sort, populate, page, perPage }) {
+    let doc;
+    if (page && perPage) {
+        doc = await orderModel.findOne(query)
+            .populate(populate)
+            .sort(sort)
+            .limit(perPage)
+            .skip((page - 1) * perPage)
+    } else {
+        doc = await orderModel.findOne(query)
+            .populate(populate)
+            .sort(sort)
+    }
+    return doc;
+}
 module.exports.populate = async function({ query, sort, populate, page, perPage }) {
-    const orders = await orderModel.find(query)
-        .populate(populate)
-        .sort(sort)
-        .limit(perPage)
-        .skip((page - 1) * perPage)
-    return orders;
+    let docs;
+    if (page && perPage) {
+        docs = await orderModel.find(query)
+            .populate(populate)
+            .sort(sort)
+            .limit(perPage)
+            .skip((page - 1) * perPage)
+    } else {
+        docs = await orderModel.find(query)
+            .populate(populate)
+            .sort(sort)
+    }
+    return docs;
 }
 module.exports.insertMany = async function(data, option) {
     const orders = await orderModel.insertMany(data, option);

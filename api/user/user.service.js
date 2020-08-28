@@ -35,20 +35,35 @@ module.exports.updateById = async function(id, data, option) {
     const user = await userModel.findByIdAndUpdate(id, data, { new: true, ...option });
     return user;
 }
-module.exports.populate = async function({ query, sort, populate, page, perPage }) {
+module.exports.populate = async function({ query, projection, sort, populate, page, perPage }) {
     let users;
     if (page && perPage) {
-        users = await userModel.find(query)
+        users = await userModel.find(query, projection)
             .populate(populate)
             .sort(sort)
             .limit(perPage)
             .skip((page - 1) * perPage)
     } else {
-        users = await userModel.find(query)
+        users = await userModel.find(query, projection)
             .populate(populate)
             .sort(sort)
     }
     return users;
+}
+module.exports.populateOne = async function({ query, sort, projection, populate, page, perPage }) {
+    let doc;
+    if (page && perPage) {
+        doc = await userModel.findOne(query, projection)
+            .populate(populate)
+            .sort(sort)
+            .limit(perPage)
+            .skip((page - 1) * perPage)
+    } else {
+        doc = await userModel.findOne(query, projection)
+            .populate(populate)
+            .sort(sort)
+    }
+    return doc;
 }
 module.exports.insertMany = async function(data, option) {
     const users = await userModel.insertMany(data, option);

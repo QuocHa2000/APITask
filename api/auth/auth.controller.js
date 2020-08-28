@@ -2,14 +2,14 @@ const userService = require('../user/user.service');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const authService = require('./auth.service');
-const { sendEmail } = require('../utils/send-mail');
-const { checkRegisterSchema } = require('../validate/register.validate');
-const { checkLoginSchema } = require('../validate/login.validate');
+const { sendEmail } = require('../../utils/send-mail');
+const { checkRegisterSchema } = require('../../validate/register.validate');
+const { checkLoginSchema } = require('../../validate/login.validate');
 const {
     checkVerifyCodeSchema,
     checkVerifyEmailSchema,
-} = require('../validate/verify.validate');
-const { validateInput } = require('../utils/validate-input');
+} = require('../../validate/verify.validate');
+const { validateInput } = require('../../utils/validate-input');
 
 module.exports.register = async function(req, res) {
     try {
@@ -66,7 +66,7 @@ module.exports.login = async function(req, res) {
     try {
         const validateError = validateInput(req.body, checkLoginSchema);
         if (validateError) throw validateError;
-        const userEmail = await userService.populate({
+        const userEmail = await userService.populateOne({
             query: { email: req.body.email },
             populate: 'cart.productId'
         })
@@ -152,8 +152,7 @@ module.exports.resendMail = async function(req, res) {
     try {
         const validateError = validateInput(req.body, checkVerifyEmailSchema);
         if (validateError) throw validateError;
-        const codeValue = Math.floor(Math.random() * 899999) + 100000;
-
+        const codeValue = Math.floor(Math.random() * 899999) + 99999;
         await authService.create({
             createdAt: new Date(),
             email: req.params.email,

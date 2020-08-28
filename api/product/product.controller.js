@@ -2,6 +2,7 @@ const {
     checkPostProduct,
     checkProductDetail,
     checkUpdateProductSchema,
+    checkChangeProductStatus
 } = require('../../validate/product.validate');
 const { validateInput } = require('../../utils/validate-input');
 const productService = require('./product.service.js');
@@ -10,7 +11,7 @@ module.exports.findProduct = async function(req, res) {
     try {
         const page = req.query.page || 1;
         const perPage = 8;
-        const foundProduct = await productService.populate({
+        const foundProducts = await productService.populate({
             query: { $text: { $search: req.query.productName } },
             projection: { score: { $meta: 'textScore' } },
             sort: { score: { $meta: 'textScore' } },
@@ -24,8 +25,8 @@ module.exports.findProduct = async function(req, res) {
         res.json({
             code: 0,
             message: 'Find productModel successfully',
-            data: foundProduct,
-            totalPage: Math.ceil(foundProduct.length / perPage),
+            data: foundProducts,
+            totalPage: Math.ceil(foundProducts.length / perPage),
         });
     } catch (error) {
         res.json({
@@ -133,15 +134,17 @@ module.exports.updateProduct = async function(req, res) {
     }
 };
 
-module.exports.disabledProduct = async function(req, res) {
+module.exports.changeProductStatus = async function(req, res) {
     try {
+        const validateError = validateInput(req.body, checkChangeProductStatus);
+        if (validateError) throw validateError;
         const result = await productService.updateOne({
-            _id: req.params.id,
+            _id: req.body._id,
             owner: req.user._id,
-        }, { status: 'blocked' });
+        }, { status: req.body.status });
         res.json({
             code: 0,
-            message: 'Disabled product successfully',
+            message: 'Change product status successfully',
             data: result,
         });
     } catch (error) {

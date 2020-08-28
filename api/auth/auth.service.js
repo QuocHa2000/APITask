@@ -50,6 +50,21 @@ module.exports.populate = async function({ query, sort, populate, page, perPage 
     }
     return docs;
 }
+module.exports.populateOne = async function({ query, sort, populate, page, perPage }) {
+    let doc;
+    if (page && perPage) {
+        doc = await registerModel.findOne(query)
+            .populate(populate)
+            .sort(sort)
+            .limit(perPage)
+            .skip((page - 1) * perPage)
+    } else {
+        doc = await registerModel.findOne(query)
+            .populate(populate)
+            .sort(sort)
+    }
+    return doc;
+}
 module.exports.insertMany = async function(data, option) {
     const orders = await registerModel.insertMany(data, option);
     return orders;

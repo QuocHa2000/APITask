@@ -4,6 +4,11 @@ const { changeUserStatus } = require('../../validate/user.validate');
 const { validateInput } = require('../../utils/validate-input');
 const { checkUpdateInfo, checkPassword } = require('../../validate/info.validate');
 const bcrypt = require('bcryptjs');
+const {
+    checkPickProducts,
+    checkUpdateProduct,
+} = require('../../validate/cart.validate');
+const errorMessage = require('../../utils/error-message');
 
 module.exports.findUserForAdmin = async function(req, res) {
     try {
@@ -21,6 +26,7 @@ module.exports.findUserForAdmin = async function(req, res) {
             totalPage: Math.ceil(foundUser.length / perPage),
         });
     } catch (error) {
+
         res.json({
             code: 1,
             message: error.message,
@@ -60,8 +66,8 @@ module.exports.changeUserStatusForAdmin = async function(req, res) {
         let productStatus;
         if (req.body.status === 'active') productStatus = 'active';
         else productStatus = 'hide';
-        const result = await userService.updateById({ _id: req.body.id }, { status: req.body.status });
-        await product.updateMany({ owner: req.body.id }, { status: productStatus });
+        const result = await userService.updateById(req.body._id, { status: req.body.status });
+        await productService.updateOne({ owner: req.body._id }, { status: productStatus });
         res.json({
             code: 0,
             message: 'Change status successfully',
@@ -183,7 +189,7 @@ module.exports.changeProductsInCartForUser = async function(req, res) {
             throw validateError;
         }
         const action = req.body.action;
-        const product = await productService.findOne({
+        const product = await productService.getOne({
             _id: req.body.productId,
             owner: { $ne: req.user._id },
         });
@@ -226,7 +232,7 @@ module.exports.changeProductsInCartForUser = async function(req, res) {
         } else {
             await userService.updateOne({ _id: req.user._id }, { $pull: { cart: { productId: req.body.productId } } });
         }
-        const result = await userService.populate({
+        const result = await userService.populateOne({
             query: { _id: req.user._id },
             populate: {
                 path: 'cart.productId',
@@ -274,7 +280,7 @@ module.exports.pickProductForUser = async function(req, res) {
             productInCart.pick = item.pick;
         }
         await req.user.save();
-        const result = await userService.populate({
+        const result = await userService.populateOne({
             query: { _id: req.user._id },
             populate: {
                 path: 'cart.productId',

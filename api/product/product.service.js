@@ -36,12 +36,34 @@ module.exports.updateById = async function(id, data, option) {
     return product;
 }
 module.exports.populate = async function({ query, projection, sort, populate, page, perPage }) {
-    const products = await productModel.find(query, projection)
-        .populate(populate)
-        .sort(sort)
-        .limit(perPage)
-        .skip((page - 1) * perPage)
-    return products;
+    let docs;
+    if (page && perPage) {
+        docs = await productModel.find(query, projection)
+            .populate(populate)
+            .sort(sort)
+            .limit(perPage)
+            .skip((page - 1) * perPage)
+    } else {
+        docs = await productModel.find(query, projection)
+            .populate(populate)
+            .sort(sort)
+    }
+    return docs;
+}
+module.exports.populateOne = async function({ query, sort, projection, populate, page, perPage }) {
+    let doc;
+    if (page && perPage) {
+        doc = await productModel.findOne(query, projection)
+            .populate(populate)
+            .sort(sort)
+            .limit(perPage)
+            .skip((page - 1) * perPage)
+    } else {
+        doc = await productModel.findOne(query, projection)
+            .populate(populate)
+            .sort(sort)
+    }
+    return doc;
 }
 module.exports.distinct = async function(_id) {
     const products = await productModel.distinct(_id);

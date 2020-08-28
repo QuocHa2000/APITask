@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const user = require('../models/user.model');
+const userService = require('../api/user/user.service');
 
 module.exports.authToken = async function(headers) {
     try {
@@ -8,10 +8,10 @@ module.exports.authToken = async function(headers) {
         const token = authHeader.split(' ')[1];
         if (!token) throw new Error('You are not login');
         const loginUser = await jwt.verify(token, process.env.secret_key);
-        const foundUser = await user.findOne({ email: loginUser.email });
+        const foundUser = await userService.getOne({ email: loginUser.email });
         return foundUser;
     } catch (error) {
-        res.json({
+        return ({
             code: 1,
             message: error.message,
             data: 'Error',

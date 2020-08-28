@@ -10,8 +10,7 @@ mongoose.connect(process.env.MONGO_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useCreateIndex: true,
-    useFindAndModify: false,
-    autoIndex: false,
+    useFindAndModify: false
 });
 
 mongoose.connection
@@ -21,12 +20,10 @@ mongoose.connection
     });
 
 const productRoute = require('./api/product/product.route');
-const userRoute = require('./routes/user.route');
-const infoRoute = require('./routes/info.route');
-const cartRoute = require('./routes/cart.route');
-const purchaseRoute = require('./routes/purchase.route');
-const statisticRoute = require('./routes/statistic.route');
-const authRoute = require('./routes/auth.route');
+const userRoute = require('./api/user/user.route');
+const orderRoute = require('./api/order/order.route');
+const statisticRoute = require('./api/statistic/statistic.route');
+const authRoute = require('./api/auth/auth.route');
 
 const adminMiddleware = require('./middleware/checkadmin.middleware');
 const loginMiddleware = require('./middleware/checkLogin.middleware');
@@ -46,10 +43,8 @@ app.use('/upload', express.static('public'));
 
 app.use('/auth', authRoute);
 app.use('/product', productRoute);
-app.use('/user', adminMiddleware, userRoute);
-app.use('/info', loginMiddleware, infoRoute);
-app.use('/cart', loginMiddleware, cartRoute);
-app.use('/purchase', loginMiddleware, purchaseRoute);
+app.use('/user', userRoute);
+app.use('/order', loginMiddleware, orderRoute);
 app.use('/statistic', statisticRoute);
 
 // catch 404 and forward to error handler
