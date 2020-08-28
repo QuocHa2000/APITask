@@ -35,7 +35,7 @@ module.exports.getUsersForAdmin = async function(req, res) {
             query: {},
             page: page,
             perPage: perPage,
-            selected: { password: 0 }
+            selected: { password: 0, totalCost: 0 }
         })
         res.json({
             code: 0,
@@ -91,9 +91,6 @@ module.exports.getInfoForUser = async function(req, res) {
 };
 module.exports.updateInfoForUser = async function(req, res) {
     try {
-        if (req.body.role == 'admin') {
-            throw new Error('You are not allowed to change your role become admin');
-        }
         const result = await userService.updateOne({ email: req.user.email }, { $set: req.body });
         res.json({
             code: 0,

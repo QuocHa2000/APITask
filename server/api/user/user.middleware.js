@@ -28,6 +28,9 @@ module.exports.updateInfoForUserMiddleware = async function(req, res, next) {
     try {
         const validateError = validateInput(req.body, checkUpdateInfo);
         if (validateError) throw validateError;
+        if (req.body.role == 'admin') {
+            throw new Error('You are not allowed to change your role become admin');
+        }
         next();
     } catch (error) {
         res.json({

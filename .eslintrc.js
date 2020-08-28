@@ -7,12 +7,12 @@ module.exports = {
     extends: 'eslint:recommended',
     parserOptions: {
         ecmaVersion: 12,
-        "ecmaFeatures": {
-            "experimentalObjectRestSpread": true
-        }
+        ecmaFeatures: {
+            experimentalObjectRestSpread: true,
+        },
     },
-    "parser": "babel-eslint",
-    'plugins': ['prettier'],
+    parser: 'babel-eslint',
+    plugins: ['prettier'],
     rules: {
         'prettier/prettier': 'error',
         indent: ['error', 4],

@@ -20,9 +20,7 @@ module.exports.purchaseProduct = async function(req, res) {
                 if (product.quantity < productInCart.amount) {
                     throw new Error(errorMessage.TOO_MUCH_PRODUCT);
                 }
-                let sameSellerOrder = listOfOrders.find((item) =>
-                    product.owner.equals(item.seller)
-                );
+                let sameSellerOrder = listOfOrders.find((item) => product.owner.equals(item.seller));
                 const addedProduct = {
                     product: product,
                     amount: productInCart.amount,
@@ -49,9 +47,7 @@ module.exports.purchaseProduct = async function(req, res) {
                 await productService.updateById(detail.product._id, { $inc: { quantity: -detail.amount, sold: detail.amount } }, { session: session });
             }
         }
-        const result = await orderService.insertMany(listOfOrders, {
-            session: session,
-        });
+        const result = await orderService.insertMany(listOfOrders, { session: session });
         await session.commitTransaction();
         session.endSession();
         res.json({
@@ -148,7 +144,7 @@ module.exports.buyerChangeOrderStatus = async function(req, res) {
 module.exports.getMyOrder = async function(req, res) {
     try {
         const page = req.query.page || 1;
-        const perPage = 12;
+        const perPage = 10;
         const role = req.body.role;
         let queryConditions;
         if (req.body.status === 'all') {
