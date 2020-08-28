@@ -19,14 +19,13 @@ mongoose.connection
         console.log('Error' + error);
     });
 
-const productRoute = require('./api/product/product.route');
-const userRoute = require('./api/user/user.route');
-const orderRoute = require('./api/order/order.route');
-const statisticRoute = require('./api/statistic/statistic.route');
-const authRoute = require('./api/auth/auth.route');
+const productRoute = require('./server/api/product/product.route');
+const userRoute = require('./server/api/user/user.route');
+const orderRoute = require('./server/api/order/order.route');
+const statisticRoute = require('./server/api/statistic/statistic.route');
+const authRoute = require('./server/api/auth/auth.route');
 
-const adminMiddleware = require('./middleware/checkadmin.middleware');
-const loginMiddleware = require('./middleware/checkLogin.middleware');
+const loginMiddleware = require('./server/middleware/checklogin.middleware');
 
 const app = express();
 
