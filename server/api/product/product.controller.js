@@ -77,14 +77,11 @@ module.exports.getMyProduct = async function(req, res) {
     try {
         const page = req.query.page || 1;
         const perPage = 8;
-        const result = await productService.populate({
+        const result = await productService.getByQuery({
             query: { owner: req.user._id },
-            populate: {
-                path: 'owner',
-                select: { email: 1, phone: 1, status: 1, role: 1 },
-            },
             page: page,
-            perPage: perPage
+            perPage: perPage,
+            selected: { owner: 0 }
         })
         res.json({
             code: 0,

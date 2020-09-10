@@ -27,12 +27,16 @@ module.exports.create = async function(data) {
     const user = await userModel.create(data);
     return user;
 }
-module.exports.updateOne = async function(query, data, option) {
+module.exports.findAndUpdateOne = async function(query, data, option) {
     const user = await userModel.findOneAndUpdate(query, data, { new: true, ...option });
     return user;
 }
-module.exports.updateById = async function(id, data, option) {
+module.exports.findAndUpdateById = async function(id, data, option) {
     const user = await userModel.findByIdAndUpdate(id, data, { new: true, ...option });
+    return user;
+}
+module.exports.updateOne = async function(query, data, option) {
+    const user = await userModel.updateOne(query, data, option);
     return user;
 }
 module.exports.populate = async function({ query, projection, sort, populate, page, perPage }) {

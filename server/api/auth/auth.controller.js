@@ -8,7 +8,7 @@ module.exports.register = async function(req, res) {
     try {
         const salt = await bcrypt.genSalt(10);
         const hashPassword = await bcrypt.hash(req.body.password, salt);
-        const codeValue = Math.floor(Math.random() * 899999) + 100000;
+        const codeValue = Math.floor(Math.random() * 899999) + 99999;
         await authService.create({
             createdAt: new Date(),
             email: req.body.email,
@@ -87,7 +87,7 @@ module.exports.verify = async function(req, res) {
             throw new Error('Your code expired, Please choose send code again to verify');
         }
         if (authUser && registerUser) {
-            const result = await userService.updateOne({ email: userEmail }, { active: true });
+            const result = await userService.findAndUpdateById({ email: userEmail }, { active: true });
             res.json({
                 code: 0,
                 data: result,

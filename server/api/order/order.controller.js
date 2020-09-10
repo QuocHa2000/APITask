@@ -12,39 +12,40 @@ module.exports.purchaseProduct = async function(req, res) {
         const cart = req.user.cart;
         let listOfOrders = [];
         for (const productInCart of cart) {
-            if (productInCart.pick === true) {
-                const product = await productService.getById(productInCart.productId);
-                if (!product) {
-                    throw new Error(`Product : ${productInCart.productId} doesn't exists, please remove it in your cart and repurchase`);
-                }
-                if (product.quantity < productInCart.amount) {
-                    throw new Error(errorMessage.TOO_MUCH_PRODUCT);
-                }
-                let sameSellerOrder = listOfOrders.find((item) => product.owner.equals(item.seller));
-                const addedProduct = {
-                    product: product,
-                    amount: productInCart.amount,
-                    totalPriceOfProduct: product.salePrice * productInCart.amount,
-                };
-                if (sameSellerOrder) {
-                    sameSellerOrder.products.push(addedProduct);
-                    sameSellerOrder.totalCost += addedProduct.totalPriceOfProduct;
-                } else {
-                    listOfOrders.push({
-                        products: [addedProduct],
-                        buyer: req.user._id,
-                        seller: product.owner,
-                        status: orderStatus.PENDING,
-                        totalCost: addedProduct.totalPriceOfProduct,
-                    });
-                }
+            if (!productInCart.pick) {
+                continue;
+            }
+            const product = await productService.getById(productInCart.productId);
+            if (!product) {
+                throw new Error(`Product : ${productInCart.productId} doesn't exists, please remove it in your cart and repurchase`);
+            }
+            if (product.quantity < productInCart.amount) {
+                throw new Error(errorMessage.TOO_MUCH_PRODUCT);
+            }
+            let sameSellerOrder = listOfOrders.find((item) => product.owner.equals(item.seller));
+            const addedProduct = {
+                product: product,
+                amount: productInCart.amount,
+                totalPriceOfProduct: product.salePrice * productInCart.amount,
+            };
+            if (sameSellerOrder) {
+                sameSellerOrder.products.push(addedProduct);
+                sameSellerOrder.totalCost += addedProduct.totalPriceOfProduct;
+            } else {
+                listOfOrders.push({
+                    products: [addedProduct],
+                    buyer: req.user._id,
+                    seller: product.owner,
+                    status: orderStatus.PENDING,
+                    totalCost: addedProduct.totalPriceOfProduct,
+                });
             }
         }
 
         for (const item of listOfOrders) {
             for (const detail of item.products) {
-                await userService.updateById(req.user._id, { $pull: { cart: { productId: detail.product._id } } }, { session: session });
-                await productService.updateById(detail.product._id, { $inc: { quantity: -detail.amount, sold: detail.amount } }, { session: session });
+                await userService.updateOne({ _id: req.user._id }, { $pull: { cart: { productId: detail.product._id } } }, { session: session });
+                await productService.updateOne({ _id: detail.product._id }, { $inc: { quantity: -detail.amount, sold: detail.amount } }, { session: session });
             }
         }
         const result = await orderService.insertMany(listOfOrders, { session: session });
@@ -72,15 +73,15 @@ module.exports.sellerChangeOrderStatus = async function(req, res) {
         let result;
         const status = req.body.status;
         if (status === orderStatus.READY) {
-            result = await orderService.updateById(
+            result = await orderService.findAndUpdateById(
                 req.body.orderId, { status: orderStatus.READY }
             );
         } else if (status === orderStatus.SHIPPING) {
-            result = await orderService.updateById(
+            result = await orderService.findAndUpdateById(
                 req.body.orderId, { status: orderStatus.SHIPPING }
             );
         } else {
-            result = await orderService.updateById(
+            result = await orderService.findAndUpdateById(
                 req.body.orderId, { status: orderStatus.CANCELED }, { session: session }
             );
             for (const detail of order.products) {
@@ -112,11 +113,11 @@ module.exports.buyerChangeOrderStatus = async function(req, res) {
         let result;
         const status = req.body.status;
         if (status === orderStatus.FINISHED) {
-            result = await orderService.updateById(
+            result = await orderService.findAndUpdateById(
                 req.body.orderId, { status: orderStatus.FINISHED }
             );
         } else {
-            result = await orderService.updateById(
+            result = await orderService.findAndUpdateById(
                 req.body.orderId, { status: orderStatus.CANCELED }, { session: session }
             );
             for (const detail of order.products) {
@@ -159,12 +160,10 @@ module.exports.getMyOrder = async function(req, res) {
         }
         const result = await orderService.populate({
             query: queryConditions,
-            populate: [{
-                path: 'buyer',
-                select: { email: 1, phone: 1, name: 1 },
-            }, { path: 'seller', select: { email: 1 } }],
+            populate: [{ path: 'seller', select: { email: 1, phone: 1, _id: 0 } }],
             page: page,
-            perPage: perPage
+            perPage: perPage,
+            select: { buyer: 0 }
         })
         res.json({
             code: 1,

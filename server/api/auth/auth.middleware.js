@@ -80,7 +80,9 @@ module.exports.verifyMiddleware = async function(req, res, next) {
 module.exports.resendMailMiddleware = async function(req, res, next) {
     try {
         const validateError = validateInput(req.body, checkVerifyEmailSchema);
-        if (validateError) throw validateError;
+        if (validateError) {
+            throw validateError;
+        }
         next();
     } catch (error) {
         res.json({

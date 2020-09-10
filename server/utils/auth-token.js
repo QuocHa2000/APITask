@@ -3,7 +3,7 @@ const userService = require('../api/user/user.service');
 
 module.exports.authToken = async function(headers) {
     try {
-        const authHeader = headers['authorization'];
+        const authHeader = headers['Authorization'];
         if (!authHeader) throw new Error('You are not login');
         const token = authHeader.split(' ')[1];
         if (!token) throw new Error('You are not login');

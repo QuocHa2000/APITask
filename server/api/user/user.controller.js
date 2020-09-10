@@ -57,7 +57,7 @@ module.exports.changeUserStatusForAdmin = async function(req, res) {
         let productStatus;
         if (req.body.status === 'active') productStatus = 'active';
         else productStatus = 'hide';
-        const result = await userService.updateById(req.body._id, { status: req.body.status });
+        const result = await userService.findAndUpdateById(req.body._id, { status: req.body.status });
         await productService.updateOne({ owner: req.body._id }, { status: productStatus });
         res.json({
             code: 0,
@@ -91,7 +91,7 @@ module.exports.getInfoForUser = async function(req, res) {
 };
 module.exports.updateInfoForUser = async function(req, res) {
     try {
-        const result = await userService.updateOne({ email: req.user.email }, { $set: req.body });
+        const result = await userService.findAndUpdateOne({ email: req.user.email }, { $set: req.body });
         res.json({
             code: 0,
             message: 'Update successfully',
@@ -110,7 +110,7 @@ module.exports.changePasswordForUser = async function(req, res) {
         const { newPassword } = req.body;
         const salt = await bcrypt.genSalt(10);
         const hashPassword = await bcrypt.hash(newPassword, salt);
-        const result = await userService.updateOne({ email: req.user.email }, { password: hashPassword });
+        const result = await userService.findAndUpdateOne({ email: req.user.email }, { password: hashPassword });
         res.json({
             code: 0,
             message: 'Change password successfully',

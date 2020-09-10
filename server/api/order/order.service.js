@@ -1,4 +1,5 @@
 const orderModel = require('./order.model');
+const { model } = require('./order.model');
 
 module.exports.getOne = async function(query, selected) {
     const order = await orderModel.findOne(query, selected);
@@ -27,12 +28,16 @@ module.exports.create = async function(data) {
     const order = await orderModel.create(data);
     return order;
 }
-module.exports.updateOne = async function(query, data, option) {
+module.exports.findAndUpdateOne = async function(query, data, option) {
     const order = await orderModel.findOneAndUpdate(query, data, { new: true, ...option });
     return order;
 }
-module.exports.updateById = async function(id, data, option) {
+module.exports.findAndUpdateById = async function(id, data, option) {
     const order = await orderModel.findByIdAndUpdate(id, data, { new: true, ...option });
+    return order;
+}
+module.exports.updateOne = async function(id, data, option) {
+    const order = await orderModel.updateOne(id, data, option);
     return order;
 }
 module.exports.populateOne = async function({ query, sort, populate, page, perPage }) {
@@ -50,22 +55,22 @@ module.exports.populateOne = async function({ query, sort, populate, page, perPa
     }
     return doc;
 }
-module.exports.populate = async function({ query, sort, populate, page, perPage }) {
+module.exports.populate = async function({ query, sort, populate, page, perPage, select }) {
     let docs;
     if (page && perPage) {
-        docs = await orderModel.find(query)
+        docs = await orderModel.find(query, select)
             .populate(populate)
             .sort(sort)
             .limit(perPage)
             .skip((page - 1) * perPage)
     } else {
-        docs = await orderModel.find(query)
+        docs = await orderModel.find(query, select)
             .populate(populate)
             .sort(sort)
     }
     return docs;
 }
-module.exports.insertMany = async function(data, option) {
+module.exports.insertMany = async function(data, option = {}) {
     const orders = await orderModel.insertMany(data, option);
     return orders;
 }
